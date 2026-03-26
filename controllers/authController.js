@@ -134,3 +134,71 @@ export const verifyEmail = async (req, res) => {
     res.status(500).json({ error: "Verification failed." });
   }
 };
+
+export const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    const user = await User.findOne({ where: { email } });
+
+    if (!user) {
+      return res.status(400).json({ msg: "User not found" });
+    }
+
+    // generate token
+    const token = crypto.randomBytes(32).toString("hex");
+
+    user.resetToken = token;
+    user.resetTokenExpiry = Date.now() + 1000 * 60 * 30; // 30 mins
+
+    await user.save();
+
+    const frontendUrl = process.env.CLIENT_URL || "http://localhost:5050";
+    const resetLink = `${frontendUrl}/api/auth/reset-password/${token}`;
+
+    // reuse your email function
+    await sendEmail(
+      email,
+      "Password Reset",
+      `<p>Reset password: <a href="${resetLink}">${resetLink}</a></p>`
+    );
+
+    res.json({ msg: "Reset email sent" });
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+export const resetPassword = async (req, res) => {
+  try {
+    const { token } = req.params;
+    const { password } = req.body;
+
+    const user = await User.findOne({
+      where: { resetToken: token },
+    });
+
+    if (!user) {
+      return res.status(400).json({ msg: "Invalid token" });
+    }
+
+    if (user.resetTokenExpiry < Date.now()) {
+      return res.status(400).json({ msg: "Token expired" });
+    }
+
+    // hash new password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    user.password = hashedPassword;
+    user.resetToken = null;
+    user.resetTokenExpiry = null;
+
+    await user.save();
+
+    res.json({ msg: "Password reset successful" });
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};

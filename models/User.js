@@ -38,6 +38,14 @@ const User = sequelize.define("User", {
   verificationTokenExpiry: {
     type: DataTypes.DATE,
   },
+
+  resetToken: {
+    type: DataTypes.STRING,
+  },
+
+  resetTokenExpiry: {
+    type: DataTypes.DATE,
+  },
   
 }, {
   timestamps: true,
