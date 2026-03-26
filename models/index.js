@@ -5,10 +5,22 @@
 
 import sequelize from "../config/db.js";
 import User from "./User.js";
+import Profile from "./Profile.js";
+import Degree from "./Degree.js";
+import Course from "./Course.js";
+import License from "./License.js";
+import Work from "./Work.js";
+import Certifications from "./Certifications.js";
 
 const db = {};
 
 db.sequelize = sequelize;
 db.User = User;
+db.Profile = Profile;
+db.Degree = Degree;
+db.Course = Course;
+db.License = License;
+db.Work = Work;
+db.Certifications = Certifications;
 
 export default db;

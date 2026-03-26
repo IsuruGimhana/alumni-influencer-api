@@ -8,12 +8,13 @@ import cookieParser from "cookie-parser";
 import db from "./models/index.js";
 import authRoutes from "./routes/authRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
+import profileRoutes from "./routes/profileRoutes.js";
 
 // connect to database
 const connectDb = async () => {
   try {
     // await db.sequelize.authenticate(); // test the database connection
-    await db.sequelize.sync(); // create tables if they don't exist
+    await db.sequelize.sync({ force: false }); // sync models with database (force: false to avoid dropping tables)
     console.log("Database connected");
   } catch (err) {
     console.log(err);
@@ -38,6 +39,7 @@ app.get("/", (req, res) => {
 });
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/profile", profileRoutes);
 
 const PORT = process.env.PORT || 5050;
 
