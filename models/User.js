@@ -30,6 +30,15 @@ const User = sequelize.define("User", {
     type: DataTypes.BOOLEAN,
     defaultValue: false,
   },
+  
+  verificationToken: {
+    type: DataTypes.STRING,
+  },
+
+  verificationTokenExpiry: {
+    type: DataTypes.DATE,
+  },
+  
 }, {
   timestamps: true,
 });

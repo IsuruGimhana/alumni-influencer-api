@@ -7,6 +7,7 @@ import cookieParser from "cookie-parser";
 // import model squelize instance
 import db from "./models/index.js";
 import authRoutes from "./routes/authRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
 
 // connect to database
 const connectDb = async () => {
@@ -36,6 +37,7 @@ app.get("/", (req, res) => {
   res.send("API running...");
 });
 app.use("/api/auth", authRoutes);
+app.use("/api/users", userRoutes);
 
 const PORT = process.env.PORT || 5050;
 

@@ -3,7 +3,7 @@ import db from "../models/index.js";
 
 const User = db.User;
 
-const authMiddleware = async (req, res, next) => {
+const protect = async (req, res, next) => {
   try {
     // Get token from cookies
     const token = req.cookies.token;
@@ -16,7 +16,9 @@ const authMiddleware = async (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
     // Get user from DB
-    const user = await User.findByPk(decoded.id);
+    const user = await User.findByPk(decoded.id, {
+      attributes: { exclude: ["password"] },
+    });
 
     if (!user) {
       return res.status(401).json({ msg: "User not found" });
@@ -31,4 +33,4 @@ const authMiddleware = async (req, res, next) => {
   }
 };
 
-export default authMiddleware;
+export default protect;
