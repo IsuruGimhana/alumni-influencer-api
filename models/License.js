@@ -2,13 +2,23 @@ import { DataTypes } from "sequelize";
 import sequelize from "../config/db.js";
 import Profile from "./Profile.js";
 
+// const License = sequelize.define("License", {
+//   id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+//   title: { type: DataTypes.STRING, allowNull: false },
+//   institution: { type: DataTypes.STRING },
+//   startDate: { type: DataTypes.DATE },
+//   endDate: { type: DataTypes.DATE },
+//   link: { type: DataTypes.STRING },
+// });
+
 const License = sequelize.define("License", {
   id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
   title: { type: DataTypes.STRING, allowNull: false },
-  institution: { type: DataTypes.STRING },
-  startDate: { type: DataTypes.DATE },
-  endDate: { type: DataTypes.DATE },
-  link: { type: DataTypes.STRING },
+  awardingBody: { type: DataTypes.STRING, allowNull: false },
+  completionDate: { type: DataTypes.DATEONLY },
+  licenseUrl: { type: DataTypes.STRING, validate: { isUrl: true } } // "URL to awarding body"
+}, {
+  timestamps: true
 });
 
 // Associate License with Profile (1:Many)

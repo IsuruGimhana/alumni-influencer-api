@@ -10,7 +10,8 @@ import Degree from "./Degree.js";
 import Course from "./Course.js";
 import License from "./License.js";
 import Work from "./Work.js";
-import Certifications from "./Certifications.js";
+import Certification from "./Certification.js";
+import Bid from "./Bid.js";
 
 const db = {};
 
@@ -21,6 +22,7 @@ db.Degree = Degree;
 db.Course = Course;
 db.License = License;
 db.Work = Work;
-db.Certifications = Certifications;
+db.Certification = Certification;
+db.Bid = Bid;
 
 export default db;

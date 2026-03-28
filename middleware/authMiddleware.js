@@ -1,7 +1,6 @@
 import jwt from "jsonwebtoken";
 import db from "../models/index.js";
-
-const User = db.User;
+const { User, Profile } = db;
 
 const protect = async (req, res, next) => {
   try {
@@ -18,6 +17,7 @@ const protect = async (req, res, next) => {
     // Get user from DB
     const user = await User.findByPk(decoded.id, {
       attributes: { exclude: ["password"] },
+      include: [{ model: Profile }] // include profile to check sponsorship balance and attendedEvent for bid limits
     });
 
     if (!user) {

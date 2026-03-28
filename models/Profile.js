@@ -2,30 +2,53 @@ import { DataTypes } from "sequelize";
 import sequelize from "../config/db.js";
 import User from "./User.js";
 
+// const Profile = sequelize.define("Profile", {
+
+//   id: {
+//     type: DataTypes.UUID,
+//     defaultValue: DataTypes.UUIDV4,
+//     primaryKey: true,
+//   },
+
+//   fullName: { 
+//     type: DataTypes.STRING, 
+//     allowNull: false 
+//   },
+
+//   bio: { 
+//     type: DataTypes.TEXT 
+//   },
+
+//   linkedIn: { 
+//     type: DataTypes.STRING 
+//   },
+
+//   profileImage: { 
+//     type: DataTypes.STRING 
+//   },
+
+//   attendedEvent: {
+//     type: DataTypes.BOOLEAN,
+//     defaultValue: false, // By default, they start with 0 events
+//   },
+
+//   sponsorshipBalance: {
+//     type: DataTypes.FLOAT,
+//     defaultValue: 0.0, // New alumni start with no sponsors
+//   },
+
+// }, {
+//   timestamps: true,
+// });
+
 const Profile = sequelize.define("Profile", {
-
-  id: {
-    type: DataTypes.UUID,
-    defaultValue: DataTypes.UUIDV4,
-    primaryKey: true,
-  },
-
-  fullName: { 
-    type: DataTypes.STRING, 
-    allowNull: false 
-  },
-
-  bio: { 
-    type: DataTypes.TEXT 
-  },
-
-  linkedIn: { 
-    type: DataTypes.STRING 
-  },
-  profileImage: { 
-    type: DataTypes.STRING 
-  },
-
+  id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+  fullName: { type: DataTypes.STRING, allowNull: false },
+  bio: { type: DataTypes.TEXT },
+  linkedInUrl: { type: DataTypes.STRING, validate: { isUrl: true } },
+  profileImage: { type: DataTypes.STRING }, // Store the file path/URL
+  attendedEvent: { type: DataTypes.BOOLEAN, defaultValue: false }, // By default, they start with 0 events
+  sponsorshipBalance: { type: DataTypes.FLOAT, defaultValue: 0.0 } // New alumni start with no sponsors
 }, {
   timestamps: true,
 });

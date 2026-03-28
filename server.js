@@ -3,27 +3,19 @@ import dotenv from "dotenv";
 import cors from "cors";
 import helmet from "helmet";
 import cookieParser from "cookie-parser";
+import cron from "node-cron";
+
+// Load environment variables from .env file
+dotenv.config();
 
 // import model squelize instance
 import db from "./models/index.js";
 import authRoutes from "./routes/authRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import profileRoutes from "./routes/profileRoutes.js";
+import bidRoutes from "./routes/bidRoutes.js";
 
-// connect to database
-const connectDb = async () => {
-  try {
-    // await db.sequelize.authenticate(); // test the database connection
-    await db.sequelize.sync({ force: false }); // sync models with database (force: false to avoid dropping tables)
-    console.log("Database connected");
-  } catch (err) {
-    console.log(err);
-  }
-};
-
-connectDb();
-
-dotenv.config();
+import { selectDailyWinner } from "./utils/selectWinner.js";
 
 const app = express();
 
@@ -33,6 +25,9 @@ app.use(cors());
 app.use(helmet());
 app.use(cookieParser());
 
+// Serve the uploads folder so images are accessible via URL
+app.use("/uploads", express.static("uploads"));
+
 // test route
 app.get("/", (req, res) => {
   res.send("API running...");
@@ -40,9 +35,39 @@ app.get("/", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/profile", profileRoutes);
+app.use("/api/bids", bidRoutes);
+
+// connect to database
+const connectDb = async () => {
+  try {
+    // await db.sequelize.authenticate(); // test the database connection
+    await db.sequelize.sync({ force: false }); // sync models with database (force: false to avoid dropping tables)
+    console.log("Database connected");
+
+    // --- TEST LOGIC START ---
+    // console.log("TEST: Running selectDailyWinner() immediately for testing...");
+    // await selectDailyWinner();
+
+    // Run every day at 18:00 (6 PM) as per assignment requirements
+    // Run after db connection is established
+    cron.schedule("0 18 * * *", async () => {
+      try {
+        console.log("System: Starting Daily Alumni Selection...");
+        await selectDailyWinner();
+      } catch (error) {
+        console.error("Cron job failed:", error);
+      }
+    }, { timezone: "UTC" }); // Set timezone to UTC or your desired timezone
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+connectDb();
 
 const PORT = process.env.PORT || 5050;
 
+// start server
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

@@ -2,13 +2,23 @@ import { DataTypes } from "sequelize";
 import sequelize from "../config/db.js";
 import Profile from "./Profile.js";
 
+// const Course = sequelize.define("Course", {
+//   id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+//   title: { type: DataTypes.STRING, allowNull: false },
+//   institution: { type: DataTypes.STRING },
+//   startDate: { type: DataTypes.DATE },
+//   endDate: { type: DataTypes.DATE },
+//   link: { type: DataTypes.STRING },
+// });
+
 const Course = sequelize.define("Course", {
   id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
   title: { type: DataTypes.STRING, allowNull: false },
   institution: { type: DataTypes.STRING },
-  startDate: { type: DataTypes.DATE },
-  endDate: { type: DataTypes.DATE },
-  link: { type: DataTypes.STRING },
+  completionDate: { type: DataTypes.DATEONLY },
+  courseUrl: { type: DataTypes.STRING, validate: { isUrl: true } }
+}, {
+  timestamps: true
 });
 
 // Associate Course with Profile (1:Many)

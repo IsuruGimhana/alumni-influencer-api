@@ -3,13 +3,23 @@ import sequelize from "../config/db.js";
 import Profile from "./Profile.js";
 
 // work history
+// const Work = sequelize.define("Work", {
+//   id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
+//   title: { type: DataTypes.STRING, allowNull: false },
+//   institution: { type: DataTypes.STRING },
+//   startDate: { type: DataTypes.DATE },
+//   endDate: { type: DataTypes.DATE },
+//   link: { type: DataTypes.STRING },
+// });
+
 const Work = sequelize.define("Work", {
   id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
-  title: { type: DataTypes.STRING, allowNull: false },
-  institution: { type: DataTypes.STRING },
-  startDate: { type: DataTypes.DATE },
-  endDate: { type: DataTypes.DATE },
-  link: { type: DataTypes.STRING },
+  jobTitle: { type: DataTypes.STRING, allowNull: false },
+  company: { type: DataTypes.STRING, allowNull: false },
+  startDate: { type: DataTypes.DATEONLY, allowNull: false },
+  endDate: { type: DataTypes.DATEONLY }, // Can be null if "Present"
+}, {
+  timestamps: true
 });
 
 // Associate Work with Profile (1:Many)
