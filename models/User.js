@@ -46,16 +46,6 @@ const User = sequelize.define("User", {
   resetTokenExpiry: {
     type: DataTypes.DATE,
   },
-
-  // attendedEvent: {
-  //   type: DataTypes.BOOLEAN,
-  //   defaultValue: false, // By default, they start with 0 events
-  // },
-
-  // sponsorshipBalance: {
-  //   type: DataTypes.FLOAT,
-  //   defaultValue: 0.0, // New alumni start with no sponsors
-  // },
   
 }, {
   timestamps: true,

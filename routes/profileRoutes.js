@@ -22,41 +22,46 @@ import {
   deleteCourse,
   getAlumnusOfTheDay
 } from "../controllers/profileController.js";
+import {
+  profileValidation,
+  degreeValidation,
+  certificationValidation,
+  workValidation,
+  licenseValidation,
+  courseValidation,
+  idParamValidation,
+  imageUploadValidation
+} from "../middleware/validator.js";
 
 const router = express.Router();
 
-// --- 1. Public Routes ---
-// This is for the AR client (no 'protect' needed)
-router.get("/alumnus-of-the-day", getAlumnusOfTheDay);
+// Publicly accessible resource
+router.get("/featured/alumnus-of-the-day", getAlumnusOfTheDay);
 
-// --- 2. Base Profile Routes (Protected) ---
+// --- Base Profile ---
 router.get("/me", protect, getMyProfile);
-router.post("/", protect, createOrUpdateProfile);
-router.post("/upload-image", protect, upload.single("profileImage"), uploadImage);
+router.post("/", protect, profileValidation, createOrUpdateProfile);
+router.post("/me/image", protect, upload.single("profileImage"), imageUploadValidation, uploadImage);
 
-// --- 3. Education (Degrees) ---
-router.post("/degree", protect, addDegree);
-router.put("/degree/:id", protect, updateDegree);
-router.delete("/degree/:id", protect, deleteDegree);
+// --- Sub-Resources of Profile ---
+router.post("/degrees", protect, degreeValidation, addDegree);
+router.put("/degrees/:id", protect, idParamValidation, degreeValidation, updateDegree);
+router.delete("/degrees/:id", protect, idParamValidation, deleteDegree);
 
-// --- 4. Professional Certifications ---
-router.post("/certification", protect, addCertification);
-router.put("/certification/:id", protect, updateCertification);
-router.delete("/certification/:id", protect, deleteCertification);
+router.post("/certifications", protect, certificationValidation, addCertification);
+router.put("/certifications/:id", protect, idParamValidation, certificationValidation, updateCertification);
+router.delete("/certifications/:id", protect, idParamValidation, deleteCertification);
 
-// --- 5. Employment History (Work) ---
-router.post("/work", protect, addWork);
-router.put("/work/:id", protect, updateWork);
-router.delete("/work/:id", protect, deleteWork);
+router.post("/experience", protect, workValidation, addWork); // 'experience' is more descriptive than 'work'
+router.put("/experience/:id", protect, idParamValidation, workValidation, updateWork);
+router.delete("/experience/:id", protect, idParamValidation, deleteWork);
 
-// --- 6. Professional Licenses ---
-router.post("/license", protect, addLicense);
-router.put("/license/:id", protect, updateLicense);
-router.delete("/license/:id", protect, deleteLicense);
+router.post("/licenses", protect, licenseValidation, addLicense);
+router.put("/licenses/:id", protect, idParamValidation, licenseValidation, updateLicense);
+router.delete("/licenses/:id", protect, idParamValidation, deleteLicense);
 
-// --- 7. Short Courses ---
-router.post("/course", protect, addCourse);
-router.put("/course/:id", protect, updateCourse);
-router.delete("/course/:id", protect, deleteCourse);
+router.post("/courses", protect, courseValidation, addCourse);
+router.put("/courses/:id", protect, idParamValidation, courseValidation, updateCourse);
+router.delete("/courses/:id", protect, idParamValidation, deleteCourse);
 
 export default router;

@@ -11,7 +11,6 @@ dotenv.config();
 // import model squelize instance
 import db from "./models/index.js";
 import authRoutes from "./routes/authRoutes.js";
-import userRoutes from "./routes/userRoutes.js";
 import profileRoutes from "./routes/profileRoutes.js";
 import bidRoutes from "./routes/bidRoutes.js";
 
@@ -33,7 +32,6 @@ app.get("/", (req, res) => {
   res.send("API running...");
 });
 app.use("/api/auth", authRoutes);
-app.use("/api/users", userRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/bids", bidRoutes);
 
@@ -48,9 +46,8 @@ const connectDb = async () => {
     // console.log("TEST: Running selectDailyWinner() immediately for testing...");
     // await selectDailyWinner();
 
-    // Run every day at 18:00 (6 PM) as per assignment requirements
-    // Run after db connection is established
-    cron.schedule("0 18 * * *", async () => {
+    // Run after db connection is established at midnight every day
+    cron.schedule("0 0 * * *", async () => {
       try {
         console.log("System: Starting Daily Alumni Selection...");
         await selectDailyWinner();

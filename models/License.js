@@ -2,15 +2,6 @@ import { DataTypes } from "sequelize";
 import sequelize from "../config/db.js";
 import Profile from "./Profile.js";
 
-// const License = sequelize.define("License", {
-//   id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
-//   title: { type: DataTypes.STRING, allowNull: false },
-//   institution: { type: DataTypes.STRING },
-//   startDate: { type: DataTypes.DATE },
-//   endDate: { type: DataTypes.DATE },
-//   link: { type: DataTypes.STRING },
-// });
-
 const License = sequelize.define("License", {
   id: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4, primaryKey: true },
   title: { type: DataTypes.STRING, allowNull: false },

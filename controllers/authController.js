@@ -11,23 +11,33 @@ export const register = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // check university email
+    // Domain Validation
     const allowedDomains = ["@westminster.ac.uk", "@my.westminster.ac.uk"];
 
     if (!allowedDomains.some(domain => email.endsWith(domain))) {
       return res.status(400).json({ msg: "Please use your university email address." });
     }
 
-    // check existing user
+    // CRITERIA: Password Strength Validation
+    // Min 8 chars, 1 upper, 1 lower, 1 number, 1 special char
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
+    
+    if (!passwordRegex.test(password)) {
+      return res.status(400).json({ 
+        msg: "Password must be at least 8 characters long and include an uppercase letter, a lowercase letter, a number, and a special character." 
+      });
+    }
+
+    // Check existing user
     const existing = await User.findOne({ where: { email } });
     if (existing) {
       return res.status(400).json({ msg: "User already exists. Please login or check your email." });
     }
 
-    // hash password
+    // CRITERIA: Bcrypt Hashing (Salt Rounds: 10)
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // create verification token (32 bytes random string)
+    // Create verification token (32 bytes random string)
     const token = crypto.randomBytes(32).toString("hex");
 
     const verificationToken = token;
@@ -35,7 +45,7 @@ export const register = async (req, res) => {
 
     const user = await User.create({
       email,
-      password: hashedPassword,
+      password: hashedPassword, // CRITERIA: Secure Storage
       verificationToken,
       verificationTokenExpiry,
     });
@@ -44,7 +54,7 @@ export const register = async (req, res) => {
     const frontendUrl = process.env.CLIENT_URL || "http://localhost:5050";
     const verificationLink = `${frontendUrl}/api/auth/verify/${token}`;
 
-    // send verification email
+    // Send verification email
     await sendEmail(
       email,
       "Verify your Westminster Account",
@@ -68,17 +78,17 @@ export const login = async (req, res) => {
     const user = await User.findOne({ where: { email } });
 
     if (!user) {
-      return res.status(400).json({ msg: "User not found" });
+      return res.status(404).json({ msg: "User not found" });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
-      return res.status(400).json({ msg: "Invalid credentials" });
+      return res.status(401).json({ msg: "Invalid credentials" });
     }
 
     if (!user.isVerified) {
-      return res.status(400).json({ msg: "Email not verified" });
+      return res.status(403).json({ msg: "Email not verified" });
     }
 
     // JWT token
@@ -96,13 +106,25 @@ export const login = async (req, res) => {
       maxAge: 24 * 60 * 60 * 1000, // 1 day
     });
 
-    res.json({ msg: "Login successful" });
+    res.status(200).json({ msg: "Login successful" });
 
   } catch (err) {
     res.status(500).json({ error: "Login error." });
   }
 };
 
+// LOGOUT
+export const logout = (req, res) => {
+  res.clearCookie("token", {
+    httpOnly: true,
+    secure: false, // Set to true in production (HTTPS)
+    sameSite: "strict",
+  });
+  
+  res.status(200).json({ msg: "Logout successful" });
+};
+
+// EMAIL VERIFICATION
 export const verifyEmail = async (req, res) => {
 
   try {
@@ -115,7 +137,7 @@ export const verifyEmail = async (req, res) => {
     });
 
     if (!user) {
-      return res.status(400).json({ msg: "Invalid token" });
+      return res.status(404).json({ msg: "Invalid token" });
     }
 
     if (user.verificationTokenExpiry < Date.now()) {
@@ -128,13 +150,14 @@ export const verifyEmail = async (req, res) => {
 
     await user.save();
 
-    res.json({ msg: "Email verified successfully. You can now log in." });
+    res.status(200).json({ msg: "Email verified successfully. You can now log in." });
 
   } catch (err) {
     res.status(500).json({ error: "Verification failed." });
   }
 };
 
+// FORGOT PASSWORD
 export const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
@@ -142,7 +165,7 @@ export const forgotPassword = async (req, res) => {
     const user = await User.findOne({ where: { email } });
 
     if (!user) {
-      return res.status(400).json({ msg: "User not found" });
+      return res.status(404).json({ msg: "User not found" });
     }
 
     // generate token
@@ -163,13 +186,14 @@ export const forgotPassword = async (req, res) => {
       `<p>Reset password: <a href="${resetLink}">${resetLink}</a></p>`
     );
 
-    res.json({ msg: "Reset email sent" });
+    res.status(200).json({ msg: "Reset email sent" });
 
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
 
+// RESET PASSWORD
 export const resetPassword = async (req, res) => {
   try {
     const { token } = req.params;
@@ -180,23 +204,33 @@ export const resetPassword = async (req, res) => {
     });
 
     if (!user) {
-      return res.status(400).json({ msg: "Invalid token" });
+      return res.status(404).json({ msg: "Invalid token" });
     }
 
     if (user.resetTokenExpiry < Date.now()) {
       return res.status(400).json({ msg: "Token expired" });
     }
 
-    // hash new password
+    // CRITERIA: Password Strength Validation
+    // Min 8 chars, 1 upper, 1 lower, 1 number, 1 special char
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
+    
+    if (!passwordRegex.test(password)) {
+      return res.status(400).json({ 
+        msg: "Password must be at least 8 characters long and include an uppercase letter, a lowercase letter, a number, and a special character." 
+      });
+    }
+
+    // CRITERIA: Bcrypt Hashing (Salt Rounds: 10)
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    user.password = hashedPassword;
+    user.password = hashedPassword; // CRITERIA: Secure Storage
     user.resetToken = null;
     user.resetTokenExpiry = null;
 
     await user.save();
 
-    res.json({ msg: "Password reset successful" });
+    res.status(200).json({ msg: "Password reset successful" });
 
   } catch (err) {
     res.status(500).json({ error: err.message });

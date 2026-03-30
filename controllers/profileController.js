@@ -16,7 +16,7 @@ export const getMyProfile = async (req, res) => {
 
     if (!profileData.profileImage) profileData.profileImage = "/uploads/profile-default.jpg";
 
-    res.json(profileData); // convert to JSON
+    res.status(200).json(profileData); // convert to JSON
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -33,15 +33,15 @@ export const createOrUpdateProfile = async (req, res) => {
     if (profile) {
       // UPDATE
       await profile.update({ fullName, bio, linkedInUrl, attendedEvent, sponsorshipBalance });
+      return res.status(200).json({ msg: "Profile updated successfully", profile });
     } else {
       // CREATE
       profile = await Profile.create({ 
         fullName, bio, linkedInUrl, attendedEvent, sponsorshipBalance, 
         userId: req.user.id 
       });
+      return res.status(201).json({ msg: "Profile created successfully", profile });
     }
-
-    res.json({ msg: "Profile saved successfully", profile });
 
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -68,7 +68,7 @@ export const uploadImage = async (req, res) => {
     
     await profile.save();
 
-    res.json({ 
+    res.status(200).json({ 
       msg: "Profile image updated successfully", 
       url: profile.profileImage
     });
@@ -83,7 +83,7 @@ export const uploadImage = async (req, res) => {
 // --- Helper for Adding Entries ---
 const addEntry = async (Model, req, res) => {
   try {
-    if (!req.user.Profile) return res.status(400).json({ msg: "Create profile first" });
+    if (!req.user.Profile) return res.status(403).json({ msg: "Create profile first" });
     const entry = await Model.create({ ...req.body, profileId: req.user.Profile.id });
     res.status(201).json(entry);
   } catch (err) {
@@ -105,7 +105,7 @@ const updateEntry = async (Model, req, res) => {
 
     // Update with whatever fields are sent in req.body
     await entry.update(req.body);
-    res.json({ msg: "Updated successfully", entry });
+    res.status(200).json({ msg: "Updated successfully", entry });
   } catch (err) {
     res.status(400).json({ error: "Update failed. Check data format." });
   }
@@ -119,7 +119,7 @@ const deleteEntry = async (Model, req, res) => {
     });
     if (!entry) return res.status(404).json({ msg: "Entry not found" });
     await entry.destroy();
-    res.json({ msg: "Deleted successfully" });
+    res.status(200).json({ msg: "Deleted successfully" });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

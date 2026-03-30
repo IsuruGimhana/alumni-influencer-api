@@ -6,8 +6,6 @@ export const placeBid = async (req, res) => {
   try {
     const { amount } = req.body;
 
-    // --- CHANGE: Access profile directly from req.user ---
-    // This is available because your middleware used 'include: [Profile]'
     const profile = req.user.Profile;
 
     if (amount > profile.sponsorshipBalance) {
@@ -38,7 +36,7 @@ export const placeBid = async (req, res) => {
     const allowedWins = profile.attendedEvent ? 4 : 3; // 4 wins if attended event, otherwise 3
 
     if (winsThisMonth >= allowedWins) {
-      return res.status(400).json({ msg: `Bid limit reached for this month (${allowedWins} wins)` });
+      return res.status(403).json({ msg: `Bid limit reached for this month (${allowedWins} wins)` });
     }
 
     // 3. Handle bid placement or update
@@ -49,6 +47,7 @@ export const placeBid = async (req, res) => {
       },
     });
 
+    let statusCode = 201;
     if (bid) {
       // only allow increasing bid
       if (amount <= bid.amount) {
@@ -57,6 +56,7 @@ export const placeBid = async (req, res) => {
 
       bid.amount = amount;
       await bid.save();
+      statusCode = 200;
     } else {
       bid = await Bid.create({
         amount,
@@ -69,7 +69,7 @@ export const placeBid = async (req, res) => {
     
     const isHighest = bid.amount >= highestBiddingValue;
 
-    res.json({ 
+    res.status(statusCode).json({ 
       msg: "Bid placed", 
       status: isHighest ? "Winning" : "Outbid",
       currentBid: bid.amount,
@@ -86,7 +86,7 @@ export const getMyBid = async (req, res) => {
     const today = new Date().toISOString().split("T")[0];
     const bid = await Bid.findOne({ where: { userId: req.user.id, bidDate: today } });
 
-    if (!bid) return res.json({ msg: "No bid placed today." });
+    if (!bid) return res.status(404).json({ msg: "No bid placed today." });
 
     // Check if they are winning right now
     const highest = await Bid.max('amount', { where: { bidDate: today } });

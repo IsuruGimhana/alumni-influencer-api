@@ -18,6 +18,7 @@ const Work = sequelize.define("Work", {
   company: { type: DataTypes.STRING, allowNull: false },
   startDate: { type: DataTypes.DATEONLY, allowNull: false },
   endDate: { type: DataTypes.DATEONLY }, // Can be null if "Present"
+  description: { type: DataTypes.STRING },
 }, {
   timestamps: true
 });
