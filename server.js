@@ -43,7 +43,7 @@ app.get("/", (req, res) => {
   res.send("API running...");
 });
 app.use("/api/auth", authRoutes);
-app.use("/api/profile", profileRoutes);
+app.use("/api/profiles", profileRoutes);
 app.use("/api/bids", bidRoutes);
 
 // connect to database

@@ -16,7 +16,7 @@ export const getMyProfile = async (req, res) => {
 
     if (!profileData.profileImage) profileData.profileImage = "/uploads/profile-default.jpg";
 
-    res.status(200).json(profileData); // convert to JSON
+    res.status(200).json({ msg: "Profile retrieved successfully", profile: profileData });
   } catch (err) {
     res.status(500).json({ msg: err.message });
   }
@@ -83,9 +83,9 @@ export const uploadImage = async (req, res) => {
 // --- Helper for Adding Entries ---
 const addEntry = async (Model, req, res) => {
   try {
-    if (!req.user.Profile) return res.status(403).json({ msg: "Create profile first" });
+    if (!req.user.Profile) return res.status(404).json({ msg: "Create profile first" });
     const entry = await Model.create({ ...req.body, profileId: req.user.Profile.id });
-    res.status(201).json(entry);
+    res.status(201).json({ msg: "Added successfully", entry });
   } catch (err) {
     res.status(500).json({ msg: err.message });
   }
@@ -149,7 +149,7 @@ export const deleteCourse = (req, res) => deleteEntry(Course, req, res);
 // Get Alumnus of the Day Api
 export const getAlumnusOfTheDay = async (req, res) => {
   try {
-    const today = new Date().toISOString().split("T")[0];
+    const today = new Date().toLocaleDateString("en-CA"); // YYYY-MM-DD format
     
     // Find today's winner
     const winningBid = await Bid.findOne({
@@ -171,7 +171,7 @@ export const getAlumnusOfTheDay = async (req, res) => {
 
     if (!profileData.profileImage) profileData.profileImage = "/uploads/profile-default.jpg";
 
-    res.status(200).json(profileData);
+    res.status(200).json({ msg: "Profile retrieved successfully", profile: profileData });
   } catch (err) {
     res.status(500).json({ msg: err.message });
   }

@@ -6,6 +6,8 @@ export const placeBid = async (req, res) => {
   try {
     const { amount } = req.body;
 
+    if (!req.user.Profile) return res.status(404).json({ msg: "Create profile first" });
+
     const profile = req.user.Profile;
 
     if (amount > profile.sponsorshipBalance) {
@@ -15,7 +17,7 @@ export const placeBid = async (req, res) => {
     }
 
     // check existing bid for today
-    const today = new Date().toISOString().split("T")[0]; // get YYYY-MM-DD format
+    const today = new Date().toLocaleDateString("en-CA"); // YYYY-MM-DD format
 
     // 1. Calculate start of the month for limit enforcement
     const startOfMonth = new Date(); // today's date
@@ -83,7 +85,7 @@ export const placeBid = async (req, res) => {
 
 export const getMyBid = async (req, res) => {
   try {
-    const today = new Date().toISOString().split("T")[0];
+    const today = new Date().toLocaleDateString("en-CA");
     const bid = await Bid.findOne({ where: { userId: req.user.id, bidDate: today } });
 
     if (!bid) return res.status(404).json({ msg: "No bid placed today." });

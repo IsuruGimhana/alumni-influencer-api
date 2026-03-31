@@ -4,7 +4,7 @@ import { Op } from "sequelize";
 import { sendEmail } from "./sendEmail.js";
 
 export const selectDailyWinner = async () => {
-  const today = new Date().toISOString().split("T")[0];
+  const today = new Date().toLocaleDateString("en-CA"); // YYYY-MM-DD format
   const startOfMonth = new Date();
   startOfMonth.setDate(1);
   startOfMonth.setHours(0, 0, 0, 0);
