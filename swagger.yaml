@@ -122,6 +122,32 @@ components:
         completionDate: { type: string, format: date }
         courseUrl: { type: string, format: uri }
 
+    # --- BIDDING SCHEMAS ---
+    BidRequest:
+      type: object
+      required: [amount]
+      properties:
+        amount:
+          type: number
+          format: float
+          example: 25.50
+          description: The amount to bid from the user's sponsorship balance.
+
+    BidResponse:
+      type: object
+      properties:
+        msg: { type: string }
+        status: { type: string, example: "Winning" }
+        currentBid: { type: number, example: 25.50 }
+        monthlyWins: { type: integer, example: 3 }
+
+    MyBidResponse:
+      type: object
+      properties:
+        amount: { type: number, example: 25.50 }
+        status: { type: string, example: "Winning" }
+        liveStatus: { type: string, example: "Currently Leading" }
+
     # --- RESPONSE SCHEMAS ---
     # Represents structured validation errors from express-validator
     ValidationError:
@@ -753,3 +779,67 @@ paths:
         '400': { $ref: '#/components/responses/subResouceInputValidationError' }
         '404': { $ref: '#/components/responses/SubResourceNotFound' }
         '500': { $ref: '#/components/responses/BadRequest' }
+
+# --- BIDDING ENDPOINTS ---
+  /bids:
+    post:
+      tags: [Bidding]
+      summary: Place or increase a daily bid
+      description: >
+        Allows a user to place a blind bid for 'Alumnus of the Day'. 
+        If a bid already exists for today, it updates it (only if the new amount is higher). 
+        Enforces monthly win limits (3 or 4 wins based on event attendance).
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BidRequest'
+      responses:
+        '200':
+          description: Bid updated successfully.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/BidResponse' }
+        '201':
+          description: New bid placed successfully.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/BidResponse' }
+        '400':
+          description: >
+            Bad Request: Insufficient funds, bid lower than previous, 
+            or validation error.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/GenericResponse' }
+        '403':
+          description: Monthly win limit reached.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+        '500':
+          $ref: '#/components/responses/ServerError'
+
+  /bids/me:
+    get:
+      tags: [Bidding]
+      summary: Get user's bid for today
+      description: Returns the user's current bid amount and live status for today's session.
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Bid data retrieved.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MyBidResponse' }
+        '404':
+          description: No bid placed today.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+        '500':
+          $ref: '#/components/responses/ServerError'

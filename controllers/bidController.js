@@ -91,7 +91,7 @@ export const getMyBid = async (req, res) => {
     // Check if they are winning right now
     const highest = await Bid.max('amount', { where: { bidDate: today } });
 
-    res.json({
+    res.status(200).json({
       amount: bid.amount,
       status: bid.status, // "pending", "winning", or "lost"
       liveStatus: bid.amount >= highest ? "Currently Leading" : "Outbid"
