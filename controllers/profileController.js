@@ -87,7 +87,7 @@ const addEntry = async (Model, req, res) => {
     const entry = await Model.create({ ...req.body, profileId: req.user.Profile.id });
     res.status(201).json(entry);
   } catch (err) {
-    res.status(400).json({ msg: "Validation failed. Ensure URLs and Dates are correct." });
+    res.status(500).json({ msg: err.message });
   }
 };
 
@@ -107,7 +107,7 @@ const updateEntry = async (Model, req, res) => {
     await entry.update(req.body);
     res.status(200).json({ msg: "Updated successfully", entry });
   } catch (err) {
-    res.status(400).json({ msg: "Update failed. Check data format." });
+    res.status(500).json({ msg: err.message });
   }
 };
 
@@ -171,7 +171,7 @@ export const getAlumnusOfTheDay = async (req, res) => {
 
     if (!profileData.profileImage) profileData.profileImage = "/uploads/profile-default.jpg";
 
-    res.json(profileData);
+    res.status(200).json(profileData);
   } catch (err) {
     res.status(500).json({ msg: err.message });
   }

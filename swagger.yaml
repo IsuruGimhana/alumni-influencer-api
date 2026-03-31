@@ -65,6 +65,63 @@ components:
           format: password
           example: "NewP@ssword123!"
 
+    # --- PROFILE REQUEST SCHEMAS ---
+    ProfileUpdateOrCreateRequest:
+      type: object
+      required: [fullName]
+      properties:
+        fullName: { type: string, example: "John Doe" }
+        bio: { type: string, maxLength: 500, example: "Computer Science Alumnus" }
+        linkedInUrl: { type: string, format: uri, example: "https://linkedin.com/in/johndoe" }
+        attendedEvent: { type: boolean, example: true }
+        sponsorshipBalance: { type: number, minimum: 0, example: 50.0 }
+
+    DegreeRequest:
+      type: object
+      required: [title, institution]
+      properties:
+        title: { type: string, example: "BSc Computer Science" }
+        institution: { type: string, example: "University of Westminster" }
+        completionDate: { type: string, format: date, example: "2023-07-01" }
+        officialUrl: { type: string, format: uri }
+
+    WorkRequest:
+      type: object
+      required: [jobTitle, company, startDate]
+      properties:
+        jobTitle: { type: string, example: "Software Engineer" }
+        company: { type: string, example: "Google" }
+        startDate: { type: string, format: date, example: "2023-08-01" }
+        endDate: { type: string, format: date, nullable: true }
+        description: { type: string }
+
+    CertificationRequest:
+      type: object
+      required: [title, issuer]
+      properties:
+        title: { type: string, example: "AWS Certified Developer" }
+        issuer: { type: string, example: "Amazon Web Services" }
+        completionDate: { type: string, format: date }
+        courseUrl: { type: string, format: uri }
+
+    licenseRequest:
+      type: object
+      required: [title, awardingBody]
+      properties:
+        title: { type: string, example: "Software Engineering License" }
+        awardingBody: { type: string, example: "Engineering Council" }
+        completionDate: { type: string, format: date }
+        licenseUrl: { type: string, format: uri }
+
+    courseRequest:
+      type: object
+      required: [title, institution]
+      properties:
+        title: { type: string, example: "Full Stack Web Development" }
+        institution: { type: string, example: "Coursera" }
+        completionDate: { type: string, format: date }
+        courseUrl: { type: string, format: uri }
+
     # --- RESPONSE SCHEMAS ---
     # Represents structured validation errors from express-validator
     ValidationError:
@@ -97,6 +154,7 @@ components:
         - $ref: '#/components/schemas/ValidationError'
 
 paths:
+# --- AUTHENTICATION ENDPOINTS ---
   /auth/register:
     post:
       tags: [Authentication]
@@ -318,3 +376,380 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MessageResponse'
+
+# --- PROFILE MANAGEMENT ENDPOINTS ---
+  # --- PUBLIC API ---
+  /profiles/featured/alumnus-of-the-day:
+    get:
+      tags: [Public]
+      summary: Get today's featured Alumnus
+      description: >
+        Returns the profile of the alumnus who won yesterday's bidding session. 
+        Publicly accessible without a login.
+      responses:
+        '200':
+          description: Successfully retrieved the winner's profile.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Profile'
+        '404':
+          description: No featured Alumnus found for today.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+        '500':
+          description: Server Error.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+
+  # --- PRIVATE BASE PROFILE ---
+  /profiles/me:
+    get:
+      tags: [Profile]
+      summary: Get current user profile
+      description: >
+        Retrieves the logged-in user's profile including all sub-resources
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Profile data retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Profile'
+        '401':
+          description: Unauthorized - No valid token found.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+        '404':
+          description: Profile not found (User exists but hasn't created a profile).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+        '500':
+          description: Server Error.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+
+  /profiles:
+    post:
+      tags: [Profile]
+      summary: Create or update user profile
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ProfileUpdateOrCreateRequest' }
+      responses:
+        '200':
+          description: Profile updated successfully
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+        '201':
+          description: Profile created successfully
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+        '400':
+          description: Validation Error
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/GenericResponse' }
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+
+  /profiles/me/image:
+    post:
+      tags: [Profile]
+      summary: Upload profile image
+      security:
+        - cookieAuth: []
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                profileImage:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Image uploaded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg: { type: string }
+                  url: { type: string }
+        '400':
+          description: Invalid file or no file selected
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/GenericResponse' }
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+
+  # --- SUB-RESOURCES ---
+  responses:
+    SubResourceCreated:
+      description: Entry added successfully.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/MessageResponse' }
+    SubResourceUpdated:
+      description: Entry updated successfully.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/MessageResponse' }
+    SubResourceDeleted:
+      description: Entry deleted successfully.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/MessageResponse' }
+    SubResourceNotFound:
+      description: The specified entry was not found.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/MessageResponse' }  
+    subResouceInputValidationError:
+      description: Validation Error (e.g., missing required fields, invalid date formats).
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/GenericResponse' }
+    BadRequest:
+      description: Server Error
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/MessageResponse' }
+
+  # 1. Degrees
+  /profiles/degrees:
+    post:
+      tags: [Profile Sub-resources]
+      summary: Add a new degree
+      security: [{ cookieAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/DegreeRequest' }
+      responses:
+        '201': { $ref: '#/components/responses/SubResourceCreated' }
+        '403': { $ref: '#/components/responses/SubResourceNotFound' }
+        '400': { $ref: '#/components/responses/subResouceInputValidationError' }
+        '500': { $ref: '#/components/responses/BadRequest' }
+
+  /profiles/degrees/{id}:
+    put:
+      tags: [Profile Sub-resources]
+      summary: Update a degree
+      security: [{ cookieAuth: [] }]
+      parameters: [{ name: id, in: path, required: true, schema: { type: string, format: uuid } }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/DegreeRequest' }
+      responses:
+        '200': { $ref: '#/components/responses/SubResourceUpdated' }
+        '400': { $ref: '#/components/responses/subResouceInputValidationError' }
+        '404': { $ref: '#/components/responses/SubResourceNotFound' }
+        '500': { $ref: '#/components/responses/BadRequest' }
+    delete:
+      tags: [Profile Sub-resources]
+      summary: Delete a degree
+      security: [{ cookieAuth: [] }]
+      parameters: [{ name: id, in: path, required: true, schema: { type: string, format: uuid } }]
+      responses:
+        '200': { $ref: '#/components/responses/SubResourceDeleted' }
+        '400': { $ref: '#/components/responses/subResouceInputValidationError' }
+        '404': { $ref: '#/components/responses/SubResourceNotFound' }
+        '500': { $ref: '#/components/responses/BadRequest' }
+
+  # 2. Certifications
+  /profiles/certifications:
+    post:
+      tags: [Profile Sub-resources]
+      summary: Add a certification
+      security: [{ cookieAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CertificationRequest' }
+      responses:
+        '201': { $ref: '#/components/responses/SubResourceCreated' }
+        '400': { $ref: '#/components/responses/subResouceInputValidationError' }
+        '403': { $ref: '#/components/responses/SubResourceNotFound' }
+        '500': { $ref: '#/components/responses/BadRequest' }
+
+  /profiles/certifications/{id}:
+    put:
+      tags: [Profile Sub-resources]
+      summary: Update a certification
+      security: [{ cookieAuth: [] }]
+      parameters: [{ name: id, in: path, required: true, schema: { type: string, format: uuid } }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CertificationRequest' }
+      responses:
+        '200': { $ref: '#/components/responses/SubResourceUpdated' }
+        '400': { $ref: '#/components/responses/subResouceInputValidationError' }
+        '404': { $ref: '#/components/responses/SubResourceNotFound' }
+        '500': { $ref: '#/components/responses/BadRequest' }
+    delete:
+      tags: [Profile Sub-resources]
+      security: [{ cookieAuth: [] }]
+      parameters: [{ name: id, in: path, required: true, schema: { type: string, format: uuid } }]
+      responses:
+        '200': { $ref: '#/components/responses/SubResourceDeleted' }
+        '400': { $ref: '#/components/responses/subResouceInputValidationError' }
+        '404': { $ref: '#/components/responses/SubResourceNotFound' }
+        '500': { $ref: '#/components/responses/BadRequest' }
+
+  # 3. Experience (Work)
+  /profiles/experience:
+    post:
+      tags: [Profile Sub-resources]
+      summary: Add work experience
+      security: [{ cookieAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/WorkRequest' }
+      responses:
+        '201': { $ref: '#/components/responses/SubResourceCreated' }
+        '400': { $ref: '#/components/responses/subResouceInputValidationError' }
+        '403': { $ref: '#/components/responses/SubResourceNotFound' }
+        '500': { $ref: '#/components/responses/BadRequest' }
+
+  /profiles/experience/{id}:
+    put:
+      tags: [Profile Sub-resources]
+      summary: Update work experience
+      security: [{ cookieAuth: [] }]
+      parameters: [{ name: id, in: path, required: true, schema: { type: string, format: uuid } }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/WorkRequest' }
+      responses:
+        '200': { $ref: '#/components/responses/SubResourceUpdated' }
+        '400': { $ref: '#/components/responses/subResouceInputValidationError' }
+        '404': { $ref: '#/components/responses/SubResourceNotFound' }
+        '500': { $ref: '#/components/responses/BadRequest' }
+    delete:
+      tags: [Profile Sub-resources]
+      security: [{ cookieAuth: [] }]
+      parameters: [{ name: id, in: path, required: true, schema: { type: string, format: uuid } }]
+      responses:
+        '200': { $ref: '#/components/responses/SubResourceDeleted' }
+        '400': { $ref: '#/components/responses/subResouceInputValidationError' }
+        '404': { $ref: '#/components/responses/SubResourceNotFound' }
+        '500': { $ref: '#/components/responses/BadRequest' }
+
+  # 4. Licenses
+  /profiles/licenses:
+    post:
+      tags: [Profile Sub-resources]
+      summary: Add a license
+      security: [{ cookieAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/licenseRequest' }
+      responses:
+        '201': { $ref: '#/components/responses/SubResourceCreated' }
+        '400': { $ref: '#/components/responses/subResouceInputValidationError' }
+        '403': { $ref: '#/components/responses/SubResourceNotFound' }
+        '500': { $ref: '#/components/responses/BadRequest' }
+
+  /profiles/licenses/{id}:
+    put:
+      tags: [Profile Sub-resources]
+      summary: Update a license
+      security: [{ cookieAuth: [] }]
+      parameters: [{ name: id, in: path, required: true, schema: { type: string, format: uuid } }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/licenseRequest' }
+      responses:
+        '200': { $ref: '#/components/responses/SubResourceUpdated' }
+        '400': { $ref: '#/components/responses/subResouceInputValidationError' }
+        '404': { $ref: '#/components/responses/SubResourceNotFound' }
+        '500': { $ref: '#/components/responses/BadRequest' }
+    delete:
+      tags: [Profile Sub-resources]
+      security: [{ cookieAuth: [] }]
+      parameters: [{ name: id, in: path, required: true, schema: { type: string, format: uuid } }]
+      responses:
+        '200': { $ref: '#/components/responses/SubResourceDeleted' }
+        '400': { $ref: '#/components/responses/subResouceInputValidationError' }
+        '404': { $ref: '#/components/responses/SubResourceNotFound' }
+        '500': { $ref: '#/components/responses/BadRequest' }
+
+  # 5. Courses
+  /profiles/courses:
+    post:
+      tags: [Profile Sub-resources]
+      summary: Add a course
+      security: [{ cookieAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/courseRequest' }
+      responses:
+        '201': { $ref: '#/components/responses/SubResourceCreated' }
+        '400': { $ref: '#/components/responses/subResouceInputValidationError' }
+        '403': { $ref: '#/components/responses/SubResourceNotFound' }
+        '500': { $ref: '#/components/responses/BadRequest' }
+
+  /profiles/courses/{id}:
+    put:
+      tags: [Profile Sub-resources]
+      summary: Update a course
+      security: [{ cookieAuth: [] }]
+      parameters: [{ name: id, in: path, required: true, schema: { type: string, format: uuid } }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/courseRequest' }
+      responses:
+        '200': { $ref: '#/components/responses/SubResourceUpdated' }
+        '400': { $ref: '#/components/responses/subResouceInputValidationError' }
+        '404': { $ref: '#/components/responses/SubResourceNotFound' }
+        '500': { $ref: '#/components/responses/BadRequest' }
+    delete:
+      tags: [Profile Sub-resources]
+      security: [{ cookieAuth: [] }]
+      parameters: [{ name: id, in: path, required: true, schema: { type: string, format: uuid } }]
+      responses:
+        '200': { $ref: '#/components/responses/SubResourceDeleted' }
+        '400': { $ref: '#/components/responses/subResouceInputValidationError' }
+        '404': { $ref: '#/components/responses/SubResourceNotFound' }
+        '500': { $ref: '#/components/responses/BadRequest' }
