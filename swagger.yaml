@@ -1,0 +1,320 @@
+openapi: 3.0.0
+info:
+  title: Alumni Influencers API
+  description: >
+    Official API documentation for the Westminster Alumni Influencer platform.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:5050/api
+    description: Local Development Server
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: token
+      description: JWT Authentication token stored in a HttpOnly cookie.
+
+  schemas:
+    # --- AUTH REQUEST SCHEMAS ---
+    RegisterRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+          example: "w1234567@westminster.ac.uk"
+          description: "Must be a @westminster.ac.uk or @my.westminster.ac.uk address."
+        password:
+          type: string
+          format: password
+          example: "P@ssword123!"
+          description: "Min 8 chars, 1 upper, 1 lower, 1 number, 1 special char."
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+          example: "w1234567@westminster.ac.uk"
+        password:
+          type: string
+          format: password
+          example: "P@ssword123!"
+
+    ForgotPasswordRequest:
+      type: object
+      required: [email]
+      properties:
+        email:
+          type: string
+          format: email
+          example: "w1234567@westminster.ac.uk"
+
+    ResetPasswordRequest:
+      type: object
+      required: [password]
+      properties:
+        password:
+          type: string
+          format: password
+          example: "NewP@ssword123!"
+
+    # --- RESPONSE SCHEMAS ---
+    # Represents structured validation errors from express-validator
+    ValidationError:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+                example: "email"
+              message:
+                type: string
+                example: "Please use your university email address."
+
+    # Generic message response for success or error messages
+    MessageResponse:
+      type: object
+      properties:
+        msg:
+          type: string
+          example: "Operation successful"
+
+    # Super schema that covers both express-validator errors and generic messages
+    GenericResponse:
+      oneOf:
+        - $ref: '#/components/schemas/MessageResponse'
+        - $ref: '#/components/schemas/ValidationError'
+
+paths:
+  /auth/register:
+    post:
+      tags: [Authentication]
+      summary: Register a new alumnus
+      description: Validates university email domain and enforces strong password criteria.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: Registration successful, verification email sent.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+        '400':
+          description: Validation Error (Invalid domain or weak password).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/GenericResponse' }
+        '500':
+          description: Server error.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+
+  /auth/login:
+    post:
+      tags: [Authentication]
+      summary: Log in user
+      description: Authenticates user, sets a HttpOnly JWT cookie, and returns a success message.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login successful.
+          headers:
+            Set-Cookie:
+              description: >
+                HttpOnly cookie containing the JWT. 
+                SameSite=Strict; Max-Age=24 * 60 * 60 * 1000 (1 day);
+              schema: 
+                type: string
+                example: "token=eyJhbG...; HttpOnly; SameSite=Strict"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '400':
+          description: Validation Error (e.g., missing fields).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/GenericResponse' }
+        '401':
+          description: Invalid credentials.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+        '403':
+          description: Email not verified.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+        '404':
+          description: User not found.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+        '500':
+          description: Server error.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+
+  /auth/verify/{token}:
+    get:
+      tags: [Authentication]
+      summary: Verify email address
+      description: Validates the 32-byte hex token sent to the user's email.
+      parameters:
+        - name: token
+          in: path
+          required: true
+          description: The hex string verification token.
+          schema:
+            type: string
+            example: "5f3d... (32-byte hex)"
+      responses:
+        '200':
+          description: Email verified successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '400':
+          description: Token expired.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '404':
+          description: Invalid token (user not found).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '500':
+          description: Server error during verification.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+
+  /auth/password/forgot:
+    post:
+      tags: [Authentication]
+      summary: Request password reset link
+      description: Sends a password reset link to the user's university email if the account exists.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ForgotPasswordRequest'
+      responses:
+        '200':
+          description: Reset email sent.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '400':
+          description: Bad Request (Invalid email).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericResponse'
+        '404':
+          description: User not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '500':
+          description: Server error (e.g., email service failure).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+
+  /auth/password/reset/{token}:
+    post:
+      tags: [Authentication]
+      summary: Reset password using token
+      description: >
+        Updates the user's password. Validates the reset token and enforces 
+        password strength (min 8 chars, 1 upper, 1 lower, 1 number, 1 special).
+      parameters:
+        - name: token
+          in: path
+          required: true
+          description: The 32-byte hex reset token sent via email.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetPasswordRequest'
+      responses:
+        '200':
+          description: Password reset successful.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '400':
+          description: Bad Request (Token expired or weak password).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericResponse'
+        '404':
+          description: Invalid token (User not found).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '500':
+          description: Server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+
+  /auth/logout:
+    post:
+      tags: [Authentication]
+      summary: Log out user
+      description: >
+        Clears the 'token' HttpOnly cookie to log out the user.
+      responses:
+        '200':
+          description: Logout successful.
+          headers:
+            Set-Cookie:
+              description: Instructions to the browser to delete the token cookie.
+              schema:
+                type: string
+                example: "token=; Max-Age=0; path=/; HttpOnly"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'

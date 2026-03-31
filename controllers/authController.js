@@ -66,7 +66,7 @@ export const register = async (req, res) => {
 
   } catch (err) {
     // res.status(500).json({ error: "Server error during registration." });
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ msg: err.message });
   }
 };
 
@@ -109,7 +109,7 @@ export const login = async (req, res) => {
     res.status(200).json({ msg: "Login successful" });
 
   } catch (err) {
-    res.status(500).json({ error: "Login error." });
+    res.status(500).json({ msg: "Login error." });
   }
 };
 
@@ -153,7 +153,7 @@ export const verifyEmail = async (req, res) => {
     res.status(200).json({ msg: "Email verified successfully. You can now log in." });
 
   } catch (err) {
-    res.status(500).json({ error: "Verification failed." });
+    res.status(500).json({ msg: "Verification failed." });
   }
 };
 
@@ -189,7 +189,7 @@ export const forgotPassword = async (req, res) => {
     res.status(200).json({ msg: "Reset email sent" });
 
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ msg: err.message });
   }
 };
 
@@ -233,6 +233,6 @@ export const resetPassword = async (req, res) => {
     res.status(200).json({ msg: "Password reset successful" });
 
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ msg: err.message });
   }
 };

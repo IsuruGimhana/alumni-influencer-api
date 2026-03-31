@@ -18,7 +18,7 @@ export const getMyProfile = async (req, res) => {
 
     res.status(200).json(profileData); // convert to JSON
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ msg: err.message });
   }
 };
 
@@ -44,7 +44,7 @@ export const createOrUpdateProfile = async (req, res) => {
     }
 
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ msg: err.message });
   }
 };
 
@@ -76,7 +76,7 @@ export const uploadImage = async (req, res) => {
   } catch (err) {
     // 4. Handle unexpected errors (DB issues, etc.)
     console.error("Upload Error:", err);
-    res.status(500).json({ error: "Failed to save image path to profile." });
+    res.status(500).json({ msg: "Failed to save image path to profile." });
   }
 };
 
@@ -87,7 +87,7 @@ const addEntry = async (Model, req, res) => {
     const entry = await Model.create({ ...req.body, profileId: req.user.Profile.id });
     res.status(201).json(entry);
   } catch (err) {
-    res.status(400).json({ error: "Validation failed. Ensure URLs and Dates are correct." });
+    res.status(400).json({ msg: "Validation failed. Ensure URLs and Dates are correct." });
   }
 };
 
@@ -107,7 +107,7 @@ const updateEntry = async (Model, req, res) => {
     await entry.update(req.body);
     res.status(200).json({ msg: "Updated successfully", entry });
   } catch (err) {
-    res.status(400).json({ error: "Update failed. Check data format." });
+    res.status(400).json({ msg: "Update failed. Check data format." });
   }
 };
 
@@ -121,7 +121,7 @@ const deleteEntry = async (Model, req, res) => {
     await entry.destroy();
     res.status(200).json({ msg: "Deleted successfully" });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ msg: err.message });
   }
 };
 
@@ -173,6 +173,6 @@ export const getAlumnusOfTheDay = async (req, res) => {
 
     res.json(profileData);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ msg: err.message });
   }
 };

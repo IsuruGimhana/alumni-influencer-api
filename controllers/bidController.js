@@ -77,7 +77,7 @@ export const placeBid = async (req, res) => {
     });
 
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ msg: err.message });
   }
 };
 
@@ -97,6 +97,6 @@ export const getMyBid = async (req, res) => {
       liveStatus: bid.amount >= highest ? "Currently Leading" : "Outbid"
     });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ msg: err.message });
   }
 };
