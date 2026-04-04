@@ -18,6 +18,13 @@ components:
       name: token
       description: JWT Authentication token stored in a HttpOnly cookie.
 
+    # Bearer-based auth for the Public developer API
+    bearerAuth:
+      type: http
+      scheme: bearer
+      # We removed bearerFormat: JWT because we are using random hex strings
+      description: "Enter your generated 64-character hex API Key (e.g., f3a1...)"
+
   schemas:
     # --- AUTH REQUEST SCHEMAS ---
     RegisterRequest:
@@ -34,6 +41,11 @@ components:
           format: password
           example: "P@ssword123!"
           description: "Min 8 chars, 1 upper, 1 lower, 1 number, 1 special char."
+        role:
+          type: string
+          enum: [alumni, developer]
+          example: "alumni"
+          description: "Optional role field. Defaults to 'alumni' if not provided."
 
     LoginRequest:
       type: object
@@ -103,7 +115,7 @@ components:
         title: { type: string, example: "AWS Certified Developer" }
         issuer: { type: string, example: "Amazon Web Services" }
         completionDate: { type: string, format: date }
-        courseUrl: { type: string, format: uri }
+        certificationUrl: { type: string, format: uri }
 
     LicenseRequest:
       type: object
@@ -243,6 +255,15 @@ components:
         amount: { type: number, example: 25.50 }
         status: { type: string, example: "Winning" }
         liveStatus: { type: string, example: "Currently Leading" }
+
+    # --- API KEY SCHEMAS ---
+    ApiUsageResponse:
+      type: object
+      properties:
+        id: { type: string, format: uuid, example: "550e8400-e29b-41d4-a716-446655440000" }
+        endpoint: { type: string, example: "/profiles/featured/alumnus-of-the-day" }
+        apiKeyId: { type: string, format: uuid }
+        createdAt: { type: string, format: date-time }
 
     # --- RESPONSE SCHEMAS ---
     # Represents structured validation errors from express-validator
@@ -501,33 +522,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/MessageResponse'
 
-# --- PROFILE MANAGEMENT ENDPOINTS ---
-  # --- PUBLIC API ---
-  /profiles/featured/alumnus-of-the-day:
-    get:
-      tags: [Public]
-      summary: Get today's featured Alumnus
-      description: >
-        Returns the profile of the alumnus who won yesterday's bidding session. 
-        Publicly accessible without a login.
-      responses:
-        '200':
-          description: Successfully retrieved the winner's profile.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ProfileResponse'
-        '404':
-          description: No featured Alumnus found for today.
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/MessageResponse' }
-        '500':
-          description: Server Error.
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/MessageResponse' }
-
   # --- PRIVATE BASE PROFILE ---
   /profiles/me:
     get:
@@ -547,6 +541,11 @@ paths:
                 $ref: '#/components/schemas/ProfileResponse'
         '401':
           description: Unauthorized - No valid token found.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+        '403':
+          description: Forbidden - User does not exist.
           content:
             application/json:
               schema: { $ref: '#/components/schemas/MessageResponse' }
@@ -588,6 +587,11 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/GenericResponse' }
+        '403':
+          description: Forbidden - Insufficient Permissions
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
         '500':
           description: Internal Server Error
           content:
@@ -624,6 +628,11 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/GenericResponse' }
+        '403':
+          description: Forbidden - Insufficient Permissions
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
         '500':
           description: Internal Server Error
           content:
@@ -654,6 +663,11 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/GenericResponse' }
+        '403':
+          description: Forbidden - Insufficient Permissions
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
         '404':
           description: Profile not found (User must create a profile before adding sub-resources).
           content:
@@ -688,6 +702,11 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/GenericResponse' }
+        '403':
+          description: Forbidden - Insufficient Permissions
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
         '404':
           description: Degree not found.
           content:
@@ -754,6 +773,11 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/MessageResponse' }
+        '403':
+          description: Forbidden - Insufficient Permissions
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
         '500':
           description: Server Error
           content:
@@ -783,6 +807,11 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/GenericResponse' }
+        '403':
+          description: Forbidden - Insufficient Permissions
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
         '404':
           description: Certification not found.
           content:
@@ -844,6 +873,11 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/GenericResponse' }
+        '403':
+          description: Forbidden - Insufficient Permissions
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
         '404':
           description: Profile not found (User must create a profile before adding sub-resources).
           content:
@@ -878,6 +912,11 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/GenericResponse' }
+        '403':
+          description: Forbidden - Insufficient Permissions
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
         '404':
           description: Work experience not found.
           content:
@@ -939,6 +978,11 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/GenericResponse' }
+        '403':
+          description: Forbidden - Insufficient Permissions
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
         '404':
           description: Profile not found (User must create a profile before adding sub-resources).
           content:
@@ -973,6 +1017,11 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/GenericResponse' }
+        '403':
+          description: Forbidden - Insufficient Permissions
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
         '404':
           description: License not found.
           content:
@@ -1034,6 +1083,11 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/GenericResponse' }
+        '403':
+          description: Forbidden - Insufficient Permissions
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
         '404':
           description: Profile not found (User must create a profile before adding sub-resources).
           content:
@@ -1068,6 +1122,11 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/GenericResponse' }
+        '403':
+          description: Forbidden - Insufficient Permissions
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
         '404':
           description: Course not found.
           content:
@@ -1142,7 +1201,7 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/GenericResponse' }
         '403':
-          description: Monthly win limit reached.
+          description: Monthly win limit reached / Forbidden - Insufficient Permissions
           content:
             application/json:
               schema: { $ref: '#/components/schemas/MessageResponse' }
@@ -1170,6 +1229,11 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/MyBidResponse' }
+        '403':
+          description: Forbidden - Insufficient Permissions
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
         '404':
           description: No bid placed today.
           content:
@@ -1177,6 +1241,217 @@ paths:
               schema: { $ref: '#/components/schemas/MessageResponse' }
         '500':
           description: Server error.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+
+# --- API KEY MANAGEMENT ENDPOINTS ---
+  /keys:
+    post:
+      tags: [API Key Management]
+      summary: Generate a new API key
+      description: >
+        Creates a new API key for accessing the public API. 
+        Requires authentication and is rate-limited to prevent abuse.
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                label:
+                  type: string
+                  description: A user-defined name for the API key (e.g., "My App Key").
+                  example: "My App Key"
+      responses:
+        '201':
+          description: API key generated successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  apiKey: { type: string, example: "abcdef123456..." }
+                  msg: { type: string, example: "API key created successfully." }
+        '400':
+          description: Validation Error (e.g., missing label).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/GenericResponse' }
+        '403':
+          description: Forbidden - Insufficient Permissions
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+        '500':
+          description: Server error.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+  
+  /keys/me:
+    get:
+      tags: [API Key Management]
+      summary: List user's API keys
+      description: Retrieves all API keys associated with the authenticated user, including their labels and creation dates.
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: API keys retrieved successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg: { type: string, example: "API keys retrieved successfully." }
+                  apiKeys:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id: { type: string, format: uuid }
+                        key: { type: string }
+                        label: { type: string }
+                        isActive: { type: boolean }
+                        createdAt: { type: string, format: date-time }
+                        userId: { type: string, format: uuid }
+        '403':
+          description: Forbidden - Insufficient Permissions
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+        '500':
+          description: Server error.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+
+  /keys/{id}:
+    delete:
+      tags: [API Key Management]
+      summary: Revoke an API key
+      description: Deletes the specified API key, preventing any further use for authentication.
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The UUID of the API key to revoke.
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: API key revoked successfully.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+        '400':
+          description: Validation Error (e.g., invalid ID format).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/GenericResponse' }
+        '403':
+          description: Forbidden - Insufficient Permissions
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+        '404':
+          description: API key not found.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+        '500':
+          description: Server error.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+
+  /keys/{id}/stats:
+    get:
+      tags: [API Key Management]
+      summary: Get API key usage statistics
+      description: >
+        Retrieves usage statistics for the specified API key, including total requests.
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The UUID of the API key to retrieve stats for.
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: API key statistics retrieved successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg: { type: string }
+                  stats:
+                    type: object
+                    properties:
+                      totalHits: { type: integer, example: 123 }
+                      recentLogs: { type: array, items: { $ref: '#/components/schemas/ApiUsageResponse' } }
+        '400':
+          description: Validation Error (e.g., invalid ID format).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/GenericResponse' }
+        '403':
+          description: Forbidden - Insufficient Permissions
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+        '404':
+          description: API key not found.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+        '500':
+          description: Server error.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+
+  # --- PUBLIC API ---
+  /keys/featured/alumnus-of-the-day:
+    get:
+      tags: [Public]
+      summary: Get today's featured Alumnus
+      description: >
+        Returns the profile of the alumnus who won yesterday's bidding session. 
+        Publicly accessible without a login.
+      security:
+        - bearerAuth: [] # Bearer-based authentication for public API access using API keys
+      responses:
+        '200':
+          description: Successfully retrieved the winner's profile.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileResponse'
+        '403':
+          description: Forbidden - Insufficient Permissions
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+        '404':
+          description: No featured Alumnus found for today.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+        '500':
+          description: Server Error.
           content:
             application/json:
               schema: { $ref: '#/components/schemas/MessageResponse' }

@@ -1,5 +1,6 @@
 import express from "express";
 import protect from "../middleware/authMiddleware.js";
+import authorize from "../middleware/authorize.js";
 import upload from "../config/multer.js";
 import {
   getMyProfile,
@@ -20,7 +21,7 @@ import {
   addCourse,
   updateCourse,
   deleteCourse,
-  getAlumnusOfTheDay
+  // getAlumnusOfTheDay
 } from "../controllers/profileController.js";
 import {
   profileValidation,
@@ -36,32 +37,32 @@ import {
 const router = express.Router();
 
 // Publicly accessible resource
-router.get("/featured/alumnus-of-the-day", getAlumnusOfTheDay);
+// router.get("/featured/alumnus-of-the-day", getAlumnusOfTheDay);
 
 // --- Base Profile ---
-router.get("/me", protect, getMyProfile);
-router.post("/", protect, profileValidation, createOrUpdateProfile);
-router.post("/me/image", protect, upload.single("profileImage"), imageUploadValidation, uploadImage);
+router.get("/me", protect, authorize("alumni"), getMyProfile);
+router.post("/", protect, authorize("alumni"), profileValidation, createOrUpdateProfile);
+router.post("/me/image", protect, authorize("alumni"), upload.single("profileImage"), imageUploadValidation, uploadImage);
 
 // --- Sub-Resources of Profile ---
-router.post("/degrees", protect, degreeValidation, addDegree);
-router.put("/degrees/:id", protect, idParamValidation, degreeValidation, updateDegree);
-router.delete("/degrees/:id", protect, idParamValidation, deleteDegree);
+router.post("/degrees", protect, authorize("alumni"), degreeValidation, addDegree);
+router.put("/degrees/:id", protect, authorize("alumni"), idParamValidation, degreeValidation, updateDegree);
+router.delete("/degrees/:id", protect, authorize("alumni"), idParamValidation, deleteDegree);
 
-router.post("/certifications", protect, certificationValidation, addCertification);
-router.put("/certifications/:id", protect, idParamValidation, certificationValidation, updateCertification);
-router.delete("/certifications/:id", protect, idParamValidation, deleteCertification);
+router.post("/certifications", protect, authorize("alumni"), certificationValidation, addCertification);
+router.put("/certifications/:id", protect, authorize("alumni"), idParamValidation, certificationValidation, updateCertification);
+router.delete("/certifications/:id", protect, authorize("alumni"), idParamValidation, deleteCertification);
 
-router.post("/experience", protect, workValidation, addWork); // 'experience' is more descriptive than 'work'
-router.put("/experience/:id", protect, idParamValidation, workValidation, updateWork);
-router.delete("/experience/:id", protect, idParamValidation, deleteWork);
+router.post("/experience", protect, authorize("alumni"), workValidation, addWork); // 'experience' is more descriptive than 'work'
+router.put("/experience/:id", protect, authorize("alumni"), idParamValidation, workValidation, updateWork);
+router.delete("/experience/:id", protect, authorize("alumni"), idParamValidation, deleteWork);
 
-router.post("/licenses", protect, licenseValidation, addLicense);
-router.put("/licenses/:id", protect, idParamValidation, licenseValidation, updateLicense);
-router.delete("/licenses/:id", protect, idParamValidation, deleteLicense);
+router.post("/licenses", protect, authorize("alumni"), licenseValidation, addLicense);
+router.put("/licenses/:id", protect, authorize("alumni"), idParamValidation, licenseValidation, updateLicense);
+router.delete("/licenses/:id", protect, authorize("alumni"), idParamValidation, deleteLicense);
 
-router.post("/courses", protect, courseValidation, addCourse);
-router.put("/courses/:id", protect, idParamValidation, courseValidation, updateCourse);
-router.delete("/courses/:id", protect, idParamValidation, deleteCourse);
+router.post("/courses", protect, authorize("alumni"), courseValidation, addCourse);
+router.put("/courses/:id", protect, authorize("alumni"), idParamValidation, courseValidation, updateCourse);
+router.delete("/courses/:id", protect, authorize("alumni"), idParamValidation, deleteCourse);
 
 export default router;

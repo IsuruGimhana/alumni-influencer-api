@@ -16,6 +16,9 @@ import db from "./models/index.js";
 import authRoutes from "./routes/authRoutes.js";
 import profileRoutes from "./routes/profileRoutes.js";
 import bidRoutes from "./routes/bidRoutes.js";
+import apiKeyRoutes from "./routes/apiKeyRoutes.js";
+// import { logApiUsage } from "./middleware/loggerMiddleware.js";
+// import adminRoutes from "./routes/adminRoutes.js";
 
 // import utility functions
 import { selectDailyWinner } from "./utils/selectWinner.js";
@@ -34,6 +37,7 @@ app.use(express.json());
 app.use(cors());
 app.use(helmet());
 app.use(cookieParser());
+// app.use(logApiUsage); // Log all API requests
 
 // Serve the uploads folder so images are accessible via URL
 app.use("/uploads", express.static("uploads"));
@@ -45,6 +49,8 @@ app.get("/", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/profiles", profileRoutes);
 app.use("/api/bids", bidRoutes);
+app.use("/api/keys", apiKeyRoutes);
+// app.use("/api/admin", adminRoutes);
 
 // connect to database
 const connectDb = async () => {

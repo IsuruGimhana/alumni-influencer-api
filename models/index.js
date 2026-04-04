@@ -12,6 +12,8 @@ import License from "./License.js";
 import Work from "./Work.js";
 import Certification from "./Certification.js";
 import Bid from "./Bid.js";
+import ApiKey from "./ApiKey.js";
+import ApiUsage from "./ApiUsage.js";
 
 const db = {};
 
@@ -24,5 +26,8 @@ db.License = License;
 db.Work = Work;
 db.Certification = Certification;
 db.Bid = Bid;
+db.ApiKey = ApiKey;
+db.ApiUsage = ApiUsage;
+
 
 export default db;

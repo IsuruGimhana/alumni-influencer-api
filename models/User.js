@@ -46,6 +46,11 @@ const User = sequelize.define("User", {
   resetTokenExpiry: {
     type: DataTypes.DATE,
   },
+
+  role: {
+    type: DataTypes.STRING,
+    defaultValue: "alumni", // alumni | developer
+  }
   
 }, {
   timestamps: true,

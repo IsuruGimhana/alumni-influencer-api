@@ -36,6 +36,14 @@ export const passwordValidation = [
   validate
 ];
 
+// Role Validation (for registration)
+export const roleValidation = [
+  body('role')
+    .optional() // Allow it to be optional, default will be set in controller
+    .isIn(['alumni', 'developer']).withMessage('Role must be one of: alumni, developer'),
+  validate
+];
+
 
 /**
  * PROFILE ROUTES VALIDATION
@@ -97,7 +105,7 @@ export const certificationValidation = [
   body('title').trim().notEmpty().withMessage('Certification name is required').escape(),
   body('issuer').trim().notEmpty().withMessage('Organization is required').escape(),
   body('completionDate').optional({ checkFalsy: true }).isISO8601().withMessage('Invalid date'),
-  body('courseUrl').optional({ checkFalsy: true }).isURL().withMessage('Invalid URL'),
+  body('certificationUrl').optional({ checkFalsy: true }).isURL().withMessage('Invalid URL'),
   validate
 ];
 
@@ -166,5 +174,18 @@ export const bidValidation = [
     .isFloat({ min: 0.01 }).withMessage('Bid must be a positive number (minimum £0.01)')
     // Sanitize: ensure it's a number to 2 decimal places
     .customSanitizer(value => parseFloat(value).toFixed(2)),
+  validate
+];
+
+/**
+ * API KEY ROUTES VALIDATION
+ */
+// API Key Generation Validation
+export const apiKeyGenerationValidation = [
+  body('label')
+    .optional({ checkFalsy: true }) // Allow it to be empty, default will be set in controller
+    .trim()
+    .isLength({ max: 50 }).withMessage('Label must be under 50 characters')
+    .escape(),
   validate
 ];

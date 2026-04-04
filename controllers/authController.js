@@ -9,7 +9,7 @@ const User = db.User;
 // REGISTER
 export const register = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, role } = req.body;
 
     // Domain Validation
     const allowedDomains = ["@westminster.ac.uk", "@my.westminster.ac.uk"];
@@ -46,6 +46,7 @@ export const register = async (req, res) => {
     const user = await User.create({
       email,
       password: hashedPassword, // CRITERIA: Secure Storage
+      role: role || "alumni",
       verificationToken,
       verificationTokenExpiry,
     });

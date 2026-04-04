@@ -7,7 +7,7 @@ const Certification = sequelize.define("Certification", {
   title: { type: DataTypes.STRING, allowNull: false },
   issuer: { type: DataTypes.STRING, allowNull: false },
   completionDate: { type: DataTypes.DATEONLY },
-  courseUrl: { type: DataTypes.STRING, validate: { isUrl: true } } // "URL to course page"
+  certificationUrl: { type: DataTypes.STRING, validate: { isUrl: true } }
 }, {
   timestamps: true,
 });

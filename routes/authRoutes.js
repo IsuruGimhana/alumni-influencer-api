@@ -1,10 +1,10 @@
 import express from "express";
 import { register, login, logout, verifyEmail, forgotPassword, resetPassword } from "../controllers/authController.js";
-import { emailValidation, passwordValidation } from "../middleware/validator.js";
+import { emailValidation, passwordValidation, roleValidation } from "../middleware/validator.js";
 
 const router = express.Router();
 
-router.post("/register", emailValidation, passwordValidation, register);
+router.post("/register", emailValidation, passwordValidation, roleValidation, register);
 router.post("/login", emailValidation, passwordValidation, login);
 router.post("/logout", logout);
 

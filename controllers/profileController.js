@@ -146,33 +146,33 @@ export const addCourse = (req, res) => addEntry(Course, req, res);
 export const updateCourse = (req, res) => updateEntry(Course, req, res);
 export const deleteCourse = (req, res) => deleteEntry(Course, req, res);
 
-// Get Alumnus of the Day Api
-export const getAlumnusOfTheDay = async (req, res) => {
-  try {
-    const today = new Date().toLocaleDateString("en-CA"); // YYYY-MM-DD format
+// // Get Alumnus of the Day Api
+// export const getAlumnusOfTheDay = async (req, res) => {
+//   try {
+//     const today = new Date().toLocaleDateString("en-CA"); // YYYY-MM-DD format
     
-    // Find today's winner
-    const winningBid = await Bid.findOne({
-      where: { bidDate: today, isWinner: true },
-      include: [{
-        model: User,
-        include: [{
-          model: Profile,
-          include: [Degree, Certification, License, Course, Work]
-        }]
-      }]
-    });
+//     // Find today's winner
+//     const winningBid = await Bid.findOne({
+//       where: { bidDate: today, isWinner: true },
+//       include: [{
+//         model: User,
+//         include: [{
+//           model: Profile,
+//           include: [Degree, Certification, License, Course, Work]
+//         }]
+//       }]
+//     });
 
-    if (!winningBid) return res.status(404).json({ msg: "No featured Alumnus today." });
+//     if (!winningBid) return res.status(404).json({ msg: "No featured Alumnus today." });
 
-    // Get profile
-    const profile = winningBid.User.Profile;
-    const profileData = profile.toJSON();
+//     // Get profile
+//     const profile = winningBid.User.Profile;
+//     const profileData = profile.toJSON();
 
-    if (!profileData.profileImage) profileData.profileImage = "/uploads/profile-default.jpg";
+//     if (!profileData.profileImage) profileData.profileImage = "/uploads/profile-default.jpg";
 
-    res.status(200).json({ msg: "Profile retrieved successfully", profile: profileData });
-  } catch (err) {
-    res.status(500).json({ msg: err.message });
-  }
-};
+//     res.status(200).json({ msg: "Profile retrieved successfully", profile: profileData });
+//   } catch (err) {
+//     res.status(500).json({ msg: err.message });
+//   }
+// };
