@@ -17,3 +17,13 @@ cw1/coverage/
 cw1/logs/
 cw1/*.log
 cw1/.DS_Store
+
+# cw2 - backend
+cw2/backend/node_modules/
+cw2/backend/.env
+cw2/backend/dist/
+cw2/backend/build/
+cw2/backend/coverage/
+cw2/backend/logs/
+cw2/backend/*.log
+cw2/backend/.DS_Store

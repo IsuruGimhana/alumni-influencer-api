@@ -1,0 +1,1457 @@
+openapi: 3.0.0
+info:
+  title: Alumni Influencers API
+  description: >
+    Official API documentation for the Westminster Alumni Influencer platform.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:5050/api
+    description: Local Development Server
+
+components:
+  securitySchemes:
+    # Using cookie-based authentication with JWT stored in an HttpOnly cookie named 'token'
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: token
+      description: JWT Authentication token stored in a HttpOnly cookie.
+
+    # Bearer-based auth for the Public API
+    bearerAuth:
+      type: http
+      scheme: bearer
+      # We removed bearerFormat: JWT because we are using random hex strings
+      description: "Enter your generated 64-character hex API Key (e.g., f3a1...)"
+
+  schemas:
+    # --- AUTH REQUEST SCHEMAS ---
+    RegisterRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+          example: "w1234567@westminster.ac.uk"
+          description: "Must be a @westminster.ac.uk or @my.westminster.ac.uk address."
+        password:
+          type: string
+          format: password
+          example: "P@ssword123!"
+          description: "Min 8 chars, 1 upper, 1 lower, 1 number, 1 special char."
+        role:
+          type: string
+          enum: [alumni, ar_app, dashboard]
+          example: "alumni"
+          description: "Optional role field. Defaults to 'alumni' if not provided."
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+          example: "w1234567@westminster.ac.uk"
+        password:
+          type: string
+          format: password
+          example: "P@ssword123!"
+
+    ForgotPasswordRequest:
+      type: object
+      required: [email]
+      properties:
+        email:
+          type: string
+          format: email
+          example: "w1234567@westminster.ac.uk"
+
+    ResetPasswordRequest:
+      type: object
+      required: [password]
+      properties:
+        password:
+          type: string
+          format: password
+          example: "NewP@ssword123!"
+
+    # --- PROFILE REQUEST SCHEMAS ---
+    ProfileUpdateOrCreateRequest:
+      type: object
+      required: [fullName]
+      properties:
+        fullName: { type: string, example: "John Doe" }
+        bio: { type: string, maxLength: 500, example: "Computer Science Alumnus" }
+        linkedInUrl: { type: string, format: uri, example: "https://linkedin.com/in/johndoe" }
+        attendedEvent: { type: boolean, example: true }
+        sponsorshipBalance: { type: number, minimum: 0, example: 50.0 }
+
+    DegreeRequest:
+      type: object
+      required: [title, institution]
+      properties:
+        title: { type: string, example: "BSc Computer Science" }
+        institution: { type: string, example: "University of Westminster" }
+        completionDate: { type: string, format: date, example: "2023-07-01" }
+        officialUrl: { type: string, format: uri }
+
+    WorkRequest:
+      type: object
+      required: [jobTitle, company, startDate]
+      properties:
+        jobTitle: { type: string, example: "Software Engineer" }
+        company: { type: string, example: "Google" }
+        startDate: { type: string, format: date, example: "2023-08-01" }
+        endDate: { type: string, format: date, nullable: true }
+        description: { type: string }
+
+    CertificationRequest:
+      type: object
+      required: [title, issuer]
+      properties:
+        title: { type: string, example: "AWS Certified Developer" }
+        issuer: { type: string, example: "Amazon Web Services" }
+        completionDate: { type: string, format: date }
+        certificationUrl: { type: string, format: uri }
+
+    LicenseRequest:
+      type: object
+      required: [title, awardingBody]
+      properties:
+        title: { type: string, example: "Software Engineering License" }
+        awardingBody: { type: string, example: "Engineering Council" }
+        completionDate: { type: string, format: date }
+        licenseUrl: { type: string, format: uri }
+
+    CourseRequest:
+      type: object
+      required: [title, institution]
+      properties:
+        title: { type: string, example: "Full Stack Web Development" }
+        institution: { type: string, example: "Coursera" }
+        completionDate: { type: string, format: date }
+        courseUrl: { type: string, format: uri }
+
+    # --- PROFILE RESPONSE SCHEMAS ---
+    DegreeResponse:
+      type: object
+      properties:
+        msg: { type: string }
+        entry:
+          allOf:
+            - type: object
+              properties:
+                id: { type: string, format: uuid, example: "550e8400-e29b-41d4..." }
+                profileId: { type: string, format: uuid }
+            - $ref: '#/components/schemas/DegreeRequest'
+
+    WorkResponse:
+      type: object
+      properties:
+        msg: { type: string }
+        entry:
+          allOf:
+            - type: object
+              properties:
+                id: { type: string, format: uuid, example: "550e8400-e29b-41d4..." }
+                profileId: { type: string, format: uuid }
+            - $ref: '#/components/schemas/WorkRequest'
+
+    CertificationResponse:
+      type: object
+      properties:
+        msg: { type: string }
+        entry:
+          allOf:
+            - type: object
+              properties:
+                id: { type: string, format: uuid, example: "550e8400-e29b-41d4..." }
+                profileId: { type: string, format: uuid }
+            - $ref: '#/components/schemas/CertificationRequest'
+    
+    LicenseResponse:
+      type: object
+      properties:
+        msg: { type: string }
+        entry:
+          allOf:
+            - type: object
+              properties:
+                id: { type: string, format: uuid, example: "550e8400-e29b-41d4..." }
+                profileId: { type: string, format: uuid }
+            - $ref: '#/components/schemas/LicenseRequest'
+    
+    CourseResponse:
+      type: object
+      properties:
+        msg: { type: string }
+        entry:
+          allOf:
+            - type: object
+              properties:
+                id: { type: string, format: uuid, example: "550e8400-e29b-41d4..." }
+                profileId: { type: string, format: uuid }
+            - $ref: '#/components/schemas/CourseRequest'
+
+    ProfileResponse:
+      type: object
+      properties:
+        msg: { type: string }
+        profile: 
+          type: object
+          properties:
+            id: { type: string, format: uuid, example: "550e8400-e29b-41d4-a716-446655440000" }
+            fullName: { type: string, example: "John Doe" }
+            bio: { type: string, example: "Computer Science Alumnus" }
+            linkedInUrl: { type: string, format: uri, example: "https://linkedin.com/in/johndoe" }
+            profileImage: { type: string, example: "/uploads/profile-123.jpg" }
+            attendedEvent: { type: boolean, example: true }
+            sponsorshipBalance: { type: number, example: 150.50 }
+            userId: { type: string, format: uuid }
+            createdAt: { type: string, format: date-time }
+            updatedAt: { type: string, format: date-time }
+            # Nested Sub-resources included by the controller
+            Degrees: 
+              type: array
+              items: { $ref: '#/components/schemas/DegreeResponse' }
+            Works:
+              type: array
+              items: { $ref: '#/components/schemas/WorkResponse' }
+            Certifications:
+              type: array
+              items: { $ref: '#/components/schemas/CertificationResponse' }
+            Licenses:
+              type: array
+              items: { $ref: '#/components/schemas/LicenseResponse' }
+            Courses:
+              type: array
+              items: { $ref: '#/components/schemas/CourseResponse' }
+
+    # --- BIDDING SCHEMAS ---
+    BidRequest:
+      type: object
+      required: [amount]
+      properties:
+        amount:
+          type: number
+          format: float
+          example: 25.50
+          description: The amount to bid from the user's sponsorship balance.
+
+    BidResponse:
+      type: object
+      properties:
+        msg: { type: string }
+        status: { type: string, example: "Winning" }
+        currentBid: { type: number, example: 25.50 }
+        monthlyWins: { type: integer, example: 3 }
+
+    MyBidResponse:
+      type: object
+      properties:
+        amount: { type: number, example: 25.50 }
+        status: { type: string, example: "Winning" }
+        liveStatus: { type: string, example: "Currently Leading" }
+
+    # --- API KEY SCHEMAS ---
+    ApiUsageResponse:
+      type: object
+      properties:
+        id: { type: string, format: uuid, example: "550e8400-e29b-41d4-a716-446655440000" }
+        endpoint: { type: string, example: "/profiles/featured/alumnus-of-the-day" }
+        apiKeyId: { type: string, format: uuid }
+        createdAt: { type: string, format: date-time }
+
+    # --- RESPONSE SCHEMAS ---
+    # Represents structured validation errors from express-validator
+    ValidationError:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              field:
+                type: string
+                example: "email"
+              message:
+                type: string
+                example: "Please use your university email address."
+
+    # Generic message response for success or error messages
+    MessageResponse:
+      type: object
+      properties:
+        msg:
+          type: string
+          example: "Operation successful"
+
+    # Super schema that covers both express-validator errors and generic messages
+    GenericResponse:
+      oneOf:
+        - $ref: '#/components/schemas/MessageResponse'
+        - $ref: '#/components/schemas/ValidationError'
+
+paths:
+# --- AUTHENTICATION ENDPOINTS ---
+  /auth/register:
+    post:
+      tags: [Authentication]
+      summary: Register a new alumnus
+      description: Validates university email domain and enforces strong password criteria.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: Registration successful, verification email sent.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+        '400':
+          description: Validation Error (Invalid domain or weak password).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/GenericResponse' }
+        '500':
+          description: Server error.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+
+  /auth/login:
+    post:
+      tags: [Authentication]
+      summary: Log in user
+      description: Authenticates user, sets a HttpOnly JWT cookie, and returns a success message.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login successful.
+          headers:
+            # Creates a HttpOnly JWT cookie with a 1-day expiration
+            Set-Cookie:
+              description: >
+                HttpOnly cookie containing the JWT. 
+                SameSite=Strict; Max-Age=24 * 60 * 60 * 1000 (1 day);
+              schema: 
+                type: string
+                example: "token=eyJhbG...; HttpOnly; SameSite=Strict"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '400':
+          description: Validation Error (e.g., missing fields).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/GenericResponse' }
+        '401':
+          description: Invalid credentials.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+        '403':
+          description: Email not verified.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+        '404':
+          description: User not found.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+        '500':
+          description: Server error.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+
+  /auth/verify/{token}:
+    get:
+      tags: [Authentication]
+      summary: Verify email address
+      description: Validates the 32-byte hex token sent to the user's email.
+      parameters:
+        - name: token
+          in: path
+          required: true
+          description: The hex string verification token.
+          schema:
+            type: string
+            example: "5f3d... (32-byte hex)"
+      responses:
+        '200':
+          description: Email verified successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '400':
+          description: Token expired.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '404':
+          description: Invalid token (user not found).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '500':
+          description: Server error during verification.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+
+  /auth/password/forgot:
+    post:
+      tags: [Authentication]
+      summary: Request password reset link
+      description: Sends a password reset link to the user's university email if the account exists.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ForgotPasswordRequest'
+      responses:
+        '200':
+          description: Reset email sent.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '400':
+          description: Bad Request (Invalid email).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericResponse'
+        '404':
+          description: User not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '500':
+          description: Server error (e.g., email service failure).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+
+  /auth/password/reset/{token}:
+    post:
+      tags: [Authentication]
+      summary: Reset password using token
+      description: >
+        Updates the user's password. Validates the reset token and enforces 
+        password strength (min 8 chars, 1 upper, 1 lower, 1 number, 1 special).
+      parameters:
+        - name: token
+          in: path
+          required: true
+          description: The 32-byte hex reset token sent via email.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetPasswordRequest'
+      responses:
+        '200':
+          description: Password reset successful.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '400':
+          description: Bad Request (Token expired or weak password).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericResponse'
+        '404':
+          description: Invalid token (User not found).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '500':
+          description: Server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+
+  /auth/logout:
+    post:
+      tags: [Authentication]
+      summary: Log out user
+      description: >
+        Clears the 'token' HttpOnly cookie to log out the user.
+      responses:
+        '200':
+          description: Logout successful.
+          headers:
+          # Expires the token cookie by setting it to an empty value and Max-Age=0
+            Set-Cookie:
+              description: Instructions to the browser to delete the token cookie.
+              schema:
+                type: string
+                example: "token=; Max-Age=0; path=/; HttpOnly"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+
+  # --- PRIVATE BASE PROFILE ---
+  /profiles/me:
+    get:
+      tags: [Profile]
+      summary: Get current user profile
+      description: >
+        Retrieves the logged-in user's profile including all sub-resources
+      # Requires authentication via the cookieAuth security scheme (JWT in HttpOnly cookie)
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Profile data retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileResponse'
+        '401':
+          description: Unauthorized - No valid token found.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+        '403':
+          description: Forbidden - User does not exist.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+        '404':
+          description: Profile not found (User exists but hasn't created a profile).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+        '500':
+          description: Server Error.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+
+  /profiles:
+    post:
+      tags: [Profile]
+      summary: Create or update user profile
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ProfileUpdateOrCreateRequest' }
+      responses:
+        '200':
+          description: Profile updated successfully
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+        '201':
+          description: Profile created successfully
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+        '400':
+          description: Validation Error
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/GenericResponse' }
+        '403':
+          description: Forbidden - Insufficient Permissions
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+
+  /profiles/me/image:
+    post:
+      tags: [Profile]
+      summary: Upload profile image
+      security:
+        - cookieAuth: []
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                profileImage:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Image uploaded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg: { type: string }
+                  url: { type: string }
+        '400':
+          description: Invalid file or no file selected
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/GenericResponse' }
+        '403':
+          description: Forbidden - Insufficient Permissions
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+
+  # --- SUB-RESOURCES ---
+  # 1. Degrees
+  /profiles/degrees:
+    post:
+      tags: [Profile Sub-resources]
+      summary: Add a new degree
+      security: 
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/DegreeRequest' }
+      responses:
+        '201':
+          description: Degree added successfully.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/DegreeResponse' }
+        '400':
+          description: Validation Error (e.g., missing required fields, invalid date formats).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/GenericResponse' }
+        '403':
+          description: Forbidden - Insufficient Permissions
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+        '404':
+          description: Profile not found (User must create a profile before adding sub-resources).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+
+  /profiles/degrees/{id}:
+    put:
+      tags: [Profile Sub-resources]
+      summary: Update a degree
+      security: 
+        - cookieAuth: []
+      parameters: [{ name: id, in: path, required: true, schema: { type: string, format: uuid } }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/DegreeRequest' }
+      responses:
+        '201':
+          description: Degree updated successfully.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/DegreeResponse' }
+        '400':
+          description: Validation Error (e.g., missing required fields, invalid date formats).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/GenericResponse' }
+        '403':
+          description: Forbidden - Insufficient Permissions
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+        '404':
+          description: Degree not found.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+    delete:
+      tags: [Profile Sub-resources]
+      summary: Delete a degree
+      security: 
+        - cookieAuth: []
+      parameters: [{ name: id, in: path, required: true, schema: { type: string, format: uuid } }]
+      responses:
+        '200':
+          description: Degree deleted successfully.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+        '400':
+          description: Validation Error (e.g., invalid ID format).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/GenericResponse' }
+        '404':
+          description: Degree not found.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+
+  # 2. Certifications
+  /profiles/certifications:
+    post:
+      tags: [Profile Sub-resources]
+      summary: Add a certification
+      security: 
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CertificationRequest' }
+      responses:
+        '201':
+          description: Certification added successfully.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CertificationResponse' }
+        '400':
+          description: Validation Error (e.g., missing required fields, invalid date formats).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/GenericResponse' }
+        '404':
+          description: Profile not found (User must create a profile before adding sub-resources).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+        '403':
+          description: Forbidden - Insufficient Permissions
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+
+  /profiles/certifications/{id}:
+    put:
+      tags: [Profile Sub-resources]
+      summary: Update a certification
+      security: 
+        - cookieAuth: []
+      parameters: [{ name: id, in: path, required: true, schema: { type: string, format: uuid } }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CertificationRequest' }
+      responses:
+        '200':
+          description: Certification updated successfully.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CertificationResponse' }
+        '400':
+          description: Validation Error (e.g., missing required fields, invalid date formats).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/GenericResponse' }
+        '403':
+          description: Forbidden - Insufficient Permissions
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+        '404':
+          description: Certification not found.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+    delete:
+      tags: [Profile Sub-resources]
+      summary: Delete a certification
+      security: 
+        - cookieAuth: []
+      parameters: [{ name: id, in: path, required: true, schema: { type: string, format: uuid } }]
+      responses:
+        '200':
+          description: Certification deleted successfully.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+        '400':
+          description: Validation Error (e.g., invalid ID format).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/GenericResponse' }
+        '404':
+          description: Certification not found.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+
+  # 3. Experience (Work)
+  /profiles/experience:
+    post:
+      tags: [Profile Sub-resources]
+      summary: Add work experience
+      security: 
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/WorkRequest' }
+      responses:
+        '201':
+          description: Work experience added successfully.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/WorkResponse' }
+        '400':
+          description: Validation Error (e.g., missing required fields, invalid date formats).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/GenericResponse' }
+        '403':
+          description: Forbidden - Insufficient Permissions
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+        '404':
+          description: Profile not found (User must create a profile before adding sub-resources).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+
+  /profiles/experience/{id}:
+    put:
+      tags: [Profile Sub-resources]
+      summary: Update work experience
+      security: 
+        - cookieAuth: []
+      parameters: [{ name: id, in: path, required: true, schema: { type: string, format: uuid } }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/WorkRequest' }
+      responses:
+        '200':
+          description: Work experience updated successfully.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/WorkResponse' }
+        '400':
+          description: Validation Error (e.g., missing required fields, invalid date formats).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/GenericResponse' }
+        '403':
+          description: Forbidden - Insufficient Permissions
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+        '404':
+          description: Work experience not found.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+    delete:
+      tags: [Profile Sub-resources]
+      summary: Delete work experience
+      security: 
+        - cookieAuth: []
+      parameters: [{ name: id, in: path, required: true, schema: { type: string, format: uuid } }]
+      responses:
+        '200':
+          description: Work experience deleted successfully.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+        '400':
+          description: Validation Error (e.g., invalid ID format).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/GenericResponse' }
+        '404':
+          description: Work experience not found.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+
+  # 4. Licenses
+  /profiles/licenses:
+    post:
+      tags: [Profile Sub-resources]
+      summary: Add a license
+      security: 
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LicenseRequest' }
+      responses:
+        '201':
+          description: License added successfully.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/LicenseResponse' }
+        '400':
+          description: Validation Error (e.g., missing required fields, invalid date formats).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/GenericResponse' }
+        '403':
+          description: Forbidden - Insufficient Permissions
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+        '404':
+          description: Profile not found (User must create a profile before adding sub-resources).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+
+  /profiles/licenses/{id}:
+    put:
+      tags: [Profile Sub-resources]
+      summary: Update a license
+      security: 
+        - cookieAuth: []
+      parameters: [{ name: id, in: path, required: true, schema: { type: string, format: uuid } }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LicenseRequest' }
+      responses:
+        '200':
+          description: License updated successfully.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/LicenseResponse' }
+        '400':
+          description: Validation Error (e.g., missing required fields, invalid date formats).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/GenericResponse' }
+        '403':
+          description: Forbidden - Insufficient Permissions
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+        '404':
+          description: License not found.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+    delete:
+      tags: [Profile Sub-resources]
+      summary: Delete a license
+      security: 
+        - cookieAuth: []
+      parameters: [{ name: id, in: path, required: true, schema: { type: string, format: uuid } }]
+      responses:
+        '200':
+          description: License deleted successfully.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+        '400':
+          description: Validation Error (e.g., invalid ID format).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/GenericResponse' }
+        '404':
+          description: License not found.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+
+  # 5. Courses
+  /profiles/courses:
+    post:
+      tags: [Profile Sub-resources]
+      summary: Add a course
+      security: 
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CourseRequest' }
+      responses:
+        '201':
+          description: Course added successfully.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CourseResponse' }
+        '400':
+          description: Validation Error (e.g., missing required fields, invalid date formats).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/GenericResponse' }
+        '403':
+          description: Forbidden - Insufficient Permissions
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+        '404':
+          description: Profile not found (User must create a profile before adding sub-resources).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+
+  /profiles/courses/{id}:
+    put:
+      tags: [Profile Sub-resources]
+      summary: Update a course
+      security: 
+        - cookieAuth: []
+      parameters: [{ name: id, in: path, required: true, schema: { type: string, format: uuid } }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CourseRequest' }
+      responses:
+        '200':
+          description: Course updated successfully.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CourseResponse' }
+        '400':
+          description: Validation Error (e.g., missing required fields, invalid date formats).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/GenericResponse' }
+        '403':
+          description: Forbidden - Insufficient Permissions
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+        '404':
+          description: Course not found.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+    delete:
+      tags: [Profile Sub-resources]
+      summary: Delete a course
+      security: 
+        - cookieAuth: []
+      parameters: [{ name: id, in: path, required: true, schema: { type: string, format: uuid } }]
+      responses:
+        '200':
+          description: Course deleted successfully.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+        '400':
+          description: Validation Error (e.g., invalid ID format).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/GenericResponse' }
+        '404':
+          description: Course not found.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+        '500':
+          description: Server Error
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+
+# --- BIDDING ENDPOINTS ---
+  /bids:
+    post:
+      tags: [Bidding]
+      summary: Place or increase a daily bid
+      description: >
+        Allows a user to place a blind bid for 'Alumnus of the Day'. 
+        If a bid already exists for today, it updates it (only if the new amount is higher). 
+        Enforces monthly win limits (3 or 4 wins based on event attendance).
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BidRequest'
+      responses:
+        '200':
+          description: Bid updated successfully.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/BidResponse' }
+        '201':
+          description: New bid placed successfully.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/BidResponse' }
+        '400':
+          description: >
+            Bad Request: Insufficient funds, bid lower than previous, 
+            or validation error.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/GenericResponse' }
+        '403':
+          description: Monthly win limit reached / Forbidden - Insufficient Permissions
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+        '404':
+          description: Profile not found (User must create a profile before bidding).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+        '500':
+          description: Server error.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+
+  /bids/me:
+    get:
+      tags: [Bidding]
+      summary: Get user's bid for today
+      description: Returns the user's current bid amount and live status for today's session.
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Bid data retrieved.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MyBidResponse' }
+        '403':
+          description: Forbidden - Insufficient Permissions
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+        '404':
+          description: No bid placed today.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+        '500':
+          description: Server error.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+
+# --- API KEY MANAGEMENT ENDPOINTS ---
+  /keys:
+    post:
+      tags: [API Key Management]
+      summary: Generate a new API key
+      description: >
+        Creates a new API key for accessing the public API. 
+        Requires authentication and is rate-limited to prevent abuse.
+      security:
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                label:
+                  type: string
+                  description: A user-defined name for the API key (e.g., "My App Key").
+                  example: "My App Key"
+      responses:
+        '201':
+          description: API key generated successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  apiKey: { type: string, example: "abcdef123456..." }
+                  msg: { type: string, example: "API key created successfully." }
+        '400':
+          description: Validation Error (e.g., missing label).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/GenericResponse' }
+        '403':
+          description: Forbidden - Insufficient Permissions
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+        '500':
+          description: Server error.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+  
+  /keys/me:
+    get:
+      tags: [API Key Management]
+      summary: List user's API keys
+      description: Retrieves all API keys associated with the authenticated user, including their labels and creation dates.
+      security:
+        - cookieAuth: []
+      responses:
+        '200':
+          description: API keys retrieved successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg: { type: string, example: "API keys retrieved successfully." }
+                  apiKeys:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id: { type: string, format: uuid }
+                        key: { type: string }
+                        label: { type: string }
+                        isActive: { type: boolean }
+                        createdAt: { type: string, format: date-time }
+                        userId: { type: string, format: uuid }
+        '403':
+          description: Forbidden - Insufficient Permissions
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+        '500':
+          description: Server error.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+
+  /keys/{id}:
+    delete:
+      tags: [API Key Management]
+      summary: Revoke an API key
+      description: Deletes the specified API key, preventing any further use for authentication.
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The UUID of the API key to revoke.
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: API key revoked successfully.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+        '400':
+          description: Validation Error (e.g., invalid ID format).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/GenericResponse' }
+        '403':
+          description: Forbidden - Insufficient Permissions
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+        '404':
+          description: API key not found.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+        '500':
+          description: Server error.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+
+  /keys/{id}/stats:
+    get:
+      tags: [API Key Management]
+      summary: Get API key usage statistics
+      description: >
+        Retrieves usage statistics for the specified API key, including total requests.
+      security:
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The UUID of the API key to retrieve stats for.
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: API key statistics retrieved successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg: { type: string }
+                  stats:
+                    type: object
+                    properties:
+                      totalHits: { type: integer, example: 123 }
+                      recentLogs: { type: array, items: { $ref: '#/components/schemas/ApiUsageResponse' } }
+        '400':
+          description: Validation Error (e.g., invalid ID format).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/GenericResponse' }
+        '403':
+          description: Forbidden - Insufficient Permissions
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+        '404':
+          description: API key not found.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+        '500':
+          description: Server error.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+
+  # --- PUBLIC API ---
+  /keys/featured/alumnus-of-the-day:
+    get:
+      tags: [Public]
+      summary: Get today's featured Alumnus
+      description: >
+        Returns the profile of the alumnus who won yesterday's bidding session. 
+        Publicly accessible without a login.
+      security:
+        - bearerAuth: [] # Bearer-based authentication for public API access using API keys
+      responses:
+        '200':
+          description: Successfully retrieved the winner's profile.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileResponse'
+        '403':
+          description: Forbidden - Insufficient Permissions
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+        '404':
+          description: No featured Alumnus found for today.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
+        '500':
+          description: Server Error.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MessageResponse' }
