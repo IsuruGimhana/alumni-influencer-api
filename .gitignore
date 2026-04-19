@@ -1,7 +1,19 @@
+# Global ignores
 .env
 node_modules/
 dist/
+build/
 coverage/
 logs/
 *.log
 .DS_Store
+
+# cw1
+cw1/node_modules/
+cw1/.env
+cw1/dist/
+cw1/build/
+cw1/coverage/
+cw1/logs/
+cw1/*.log
+cw1/.DS_Store
