@@ -1,7 +1,7 @@
 import db from "../models/index.js";
 const { ApiKey, ApiUsage, Bid, User, Profile, Degree, Certification, License, Course, Work } = db;
 import crypto from "crypto";
-import { get } from "http";
+// import { get } from "http";
 import { Op, fn, col } from "sequelize";
 
 /**
@@ -254,6 +254,7 @@ export const getJobTitleTrends = async (req, res) => {
       where: getFilters(req.query),
       group: ['Work.jobTitle'],
       order: [[countWorkId, 'DESC']],
+      limit: 5,
       raw: true,
       subQuery: false
     });
@@ -269,7 +270,7 @@ export const getJobTitleTrends = async (req, res) => {
  */
 export const getTopEmployers = async (req, res) => {
   try {
-    const n = parseInt(req.query.limit) || 5;
+    // const n = parseInt(req.query.limit) || 5;
     const countWorkId = fn('COUNT', fn('DISTINCT', col('Work.id')));
     const employers = await Work.findAll({
       attributes: ['company', [countWorkId, 'count']],
@@ -285,7 +286,8 @@ export const getTopEmployers = async (req, res) => {
       where: getFilters(req.query),
       group: ['Work.company'],
       order: [[countWorkId, 'DESC']],
-      limit: n,
+      // limit: n,
+      limit: 5,
       raw: true,
       subQuery: false
     });
@@ -312,12 +314,89 @@ export const getGeographicalDist = async (req, res) => {
       where: getFilters(req.query, 'Profile'),
       group: ['Profile.city', 'Profile.country'],
       order: [[countProfileId, 'DESC']],
+      limit: 5,
       raw: true,
       subQuery: false
     });
     res.json(geo);
   } catch (err) {
     res.status(500).json({ msg: "Error fetching geography" });
+  }
+};
+
+/**
+ * 6. Certification Trends
+ * Identifies the most common certifications among alumni, with filters for programme and graduation date.
+ */
+export const getCertificationTrend = async (req, res) => {
+  try {
+    const data = await Certification.findAll({
+      attributes: [
+        [
+          fn(
+            'TO_CHAR',
+            fn('DATE_TRUNC', 'month', col('Certification.completionDate')),
+            'Mon YYYY'
+          ),
+          'month'
+        ],
+        [fn('COUNT', col('Certification.id')), 'count']
+      ],
+      include: [{
+        model: Profile,
+        attributes: [],
+        include: [{
+          model: Degree,
+          attributes: []
+        }]
+      }],
+      where: getFilters(req.query),
+      group: [fn('DATE_TRUNC', 'month', col('Certification.completionDate'))],
+      order: [[fn('DATE_TRUNC', 'month', col('Certification.completionDate')), 'ASC']],
+      raw: true,
+      subQuery: false
+    });
+
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ msg: "Error fetching certification trends", error: err.message });
+  }
+};
+
+export const getProgrammeDistribution = async (req, res) => {
+  try {
+    const countUserId = fn('COUNT', fn('DISTINCT', col('User.id')));
+
+    const data = await User.findAll({
+      attributes: [
+        // 'Profile->Degrees.title' is used since it's a nested attribute
+        [col('Profile->Degrees.title'), 'programme'],
+        [countUserId, 'count']
+      ],
+      include: [{
+        model: Profile,
+        attributes: [],
+        include: [{
+          model: Degree,
+          attributes: []
+        }]
+      }],
+      where: {
+        role: 'alumni',
+        ...getFilters(req.query, 'Profile') // uses $Profile.Degrees$
+      },
+      group: ['Profile->Degrees.title'],
+      order: [[countUserId, 'DESC']],
+      raw: true,
+      subQuery: false
+    });
+
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({
+      msg: "Error fetching programme distribution",
+      error: err.message
+    });
   }
 };
 

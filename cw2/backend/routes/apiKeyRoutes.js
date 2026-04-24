@@ -15,6 +15,8 @@ import {
   getJobTitleTrends, 
   getTopEmployers, 
   getGeographicalDist, 
+  getCertificationTrend,
+  getProgrammeDistribution,
   getAlumniDirectory 
 } from "../controllers/apiKeyController.js";
 import { apiKeyGenerationValidation, idParamValidation } from "../middleware/validator.js";
@@ -42,6 +44,8 @@ router.get("/analytics/top-employers", trackUsage("read:analytics"), getTopEmplo
 // TODO: Implement Industry Analytics
 // router.get("/analytics/industry", trackUsage("read:analytics"), getTopIndustries);
 router.get("/analytics/geography", trackUsage("read:analytics"), getGeographicalDist);
+router.get("/analytics/certification-trends", trackUsage("read:analytics"), getCertificationTrend);
+router.get("/analytics/programme-distribution", trackUsage("read:analytics"), getProgrammeDistribution);
 
 // View Alumni Directory (Requires 'read:alumni' scope)
 router.get("/directory", trackUsage("read:alumni"), getAlumniDirectory);

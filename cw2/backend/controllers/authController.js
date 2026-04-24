@@ -6,6 +6,36 @@ import { sendEmail } from "../utils/sendEmail.js";
 
 const User = db.User;
 
+// GET ME
+export const getMe = async (req, res) => {
+  try {
+    // cookie-based JWT
+    const token = req.cookies.token;
+
+    if (!token) {
+      return res.status(401).json({ msg: "Not authenticated" });
+    }
+
+    // verify token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    // get user
+    const user = await User.findByPk(decoded.id, {
+      attributes: { exclude: ["password"] } // NEVER send password
+    });
+
+    if (!user) {
+      return res.status(404).json({ msg: "User not found" });
+    }
+
+    console.log("User fetched:", user);
+    res.status(200).json(user);
+
+  } catch (err) {
+    res.status(401).json({ msg: "Invalid or expired token" });
+  }
+};
+
 // REGISTER
 export const register = async (req, res) => {
   try {
@@ -53,7 +83,7 @@ export const register = async (req, res) => {
 
     // In production, use an environment variable for the Frontend URL
     const frontendUrl = process.env.CLIENT_URL || "http://localhost:5050";
-    const verificationLink = `${frontendUrl}/api/auth/verify/${token}`;
+    const verificationLink = `${frontendUrl}/verify/${token}`;
 
     // Send verification email
     // TODO: change this back after checking.
@@ -65,8 +95,9 @@ export const register = async (req, res) => {
     // );
     // res.status(201).json({ msg: "Registration successful." });
     // TODO: change this back after checking.
-    // res.status(201).json({ msg: "Verification email sent! Check your inbox." });
-      res.status(201).json({ msg: verificationLink }); // TEMP: Return the verification link in response for testing
+    // res.status(201).json({ msg: "A verification link has been sent! Check your inbox." });
+    console.log(verificationLink);
+    res.status(201).json({ msg: verificationLink }); // TEMP: Return the verification link in response for testing
 
   } catch (err) {
     // res.status(500).json({ error: "Server error during registration." });
@@ -181,16 +212,18 @@ export const forgotPassword = async (req, res) => {
     await user.save();
 
     const frontendUrl = process.env.CLIENT_URL || "http://localhost:5050";
-    const resetLink = `${frontendUrl}/api/auth/reset-password/${token}`;
+    const resetLink = `${frontendUrl}/reset-password/${token}`;
 
     // reuse your email function
-    await sendEmail(
-      email,
-      "Password Reset",
-      `<p>Reset password: <a href="${resetLink}">${resetLink}</a></p>`
-    );
+    // TODO: change this back after checking.
+    // await sendEmail(
+    //   email,
+    //   "Password Reset",
+    //   `<p>Reset password: <a href="${resetLink}">${resetLink}</a></p>`
+    // );
 
-    res.status(200).json({ msg: "Reset email sent" });
+    res.status(200).json({ msg: "A reset link has been sent! Check your inbox." });
+    console.log(resetLink);
 
   } catch (err) {
     res.status(500).json({ msg: err.message });

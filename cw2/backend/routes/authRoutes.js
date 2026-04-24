@@ -1,8 +1,10 @@
 import express from "express";
-import { register, login, logout, verifyEmail, forgotPassword, resetPassword } from "../controllers/authController.js";
+import { getMe, register, login, logout, verifyEmail, forgotPassword, resetPassword } from "../controllers/authController.js";
 import { emailValidation, passwordValidation, roleValidation } from "../middleware/validator.js";
 
 const router = express.Router();
+
+router.get("/me", getMe);
 
 router.post("/register", emailValidation, passwordValidation, roleValidation, register);
 router.post("/login", emailValidation, passwordValidation, login);

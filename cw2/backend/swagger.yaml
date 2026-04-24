@@ -278,7 +278,7 @@ components:
               field:
                 type: string
                 example: "email"
-              message:
+              msg:
                 type: string
                 example: "Please use your university email address."
 
