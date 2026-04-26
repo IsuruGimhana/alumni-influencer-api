@@ -32,7 +32,8 @@ export const createOrUpdateProfile = async (req, res) => {
 
     if (profile) {
       // UPDATE
-      await profile.update({ fullName, city, country, bio, linkedInUrl, attendedEvent, sponsorshipBalance });
+      // await profile.update({ fullName, city, country, bio, linkedInUrl, attendedEvent, sponsorshipBalance });
+      await profile.update(req.body);
       return res.status(200).json({ msg: "Profile updated successfully", profile });
     } else {
       // CREATE

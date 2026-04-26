@@ -7,6 +7,8 @@ import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/auth/ResetPasswordPage";
 import ProtectedRoute from "./components/common/ProtectedRoute";
 
+import ProfilePage from "./pages/profile/ProfilePage";
+
 function App() {
   return (
     <BrowserRouter>
@@ -16,12 +18,24 @@ function App() {
         <Route path="/verify/:token" element={<VerifyEmailPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
+        <Route path="/profile" element={<ProfilePage />} />
 
+        {/* Generic Protected Route for any logged in user */}
         <Route
           path="/dashboard"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={["dashboard"]}>
               <DashboardPage />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Role-Specific Protected Route only for Alumni */}
+        <Route
+          path="/profile" 
+          element={
+            <ProtectedRoute allowedRoles={["alumni"]}>
+              <ProfilePage />
             </ProtectedRoute>
           }
         />

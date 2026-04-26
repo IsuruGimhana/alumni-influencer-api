@@ -1,12 +1,12 @@
 import { useState } from "react";
-import * as authService from "../../api/authService";
+// import * as authService from "../../api/authService";
 import { useAuth } from "../../hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { normalizeError } from "../../utils/normalizeError";
 import { Eye, EyeOff } from "lucide-react";
 
 export default function LoginForm() {
-  const { setUser } = useAuth();
+  const { user, loginUser } = useAuth();
   const navigate = useNavigate();
 
   const [form, setForm] = useState({ email: "", password: "" });
@@ -22,9 +22,11 @@ export default function LoginForm() {
     setSuccess("");
 
     try {
-      const res = await authService.login(form);
-      setUser(res?.data);
-      setSuccess(res?.data?.msg);
+      const res = await loginUser(form);
+      // setUser(res?.data);
+      setSuccess(res?.msg);
+      console.log(res?.msg);
+      console.log(user);
       setForm({
         email: "",
         password: "",

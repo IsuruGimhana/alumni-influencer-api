@@ -44,99 +44,220 @@ export const roleValidation = [
   validate
 ];
 
-
 /**
- * PROFILE ROUTES VALIDATION
+ * PROFILE VALIDATION
  */
 
-// BASE PROFILE VALIDATION
-export const profileValidation = [
-  // Required field
-  body('fullName')
+// shared rules
+const profileRules = [
+  body("city")
+    .optional({ checkFalsy: true })
     .trim()
-    .notEmpty().withMessage('Full name is required')
+    .isLength({ max: 100 }).withMessage("City must be under 100 characters")
     .escape(),
 
-  body('city')
-    .optional({ checkFalsy: true }) // Allow it to be empty
+  body("country")
+    .optional({ checkFalsy: true })
     .trim()
-    .isLength({ max: 100 }).withMessage('City must be under 100 characters')
+    .isLength({ max: 100 }).withMessage("Country must be under 100 characters")
     .escape(),
 
-  body('country')
-    .optional({ checkFalsy: true }) // Allow it to be empty
+  body("bio")
+    .optional({ checkFalsy: true })
     .trim()
-    .isLength({ max: 100 }).withMessage('Country must be under 100 characters')
+    .isLength({ max: 500 }).withMessage("Bio must be under 500 characters")
     .escape(),
 
-  // Optional field with a limit
-  body('bio')
-    .optional({ checkFalsy: true }) // Allow it to be empty
-    .trim()
-    .isLength({ max: 500 }).withMessage('Bio must be under 500 characters')
-    .escape(),
+  body("linkedInUrl")
+    .optional({ checkFalsy: true })
+    .isURL().withMessage("Invalid LinkedIn URL"),
 
-  // Optional field with format check
-  body('linkedInUrl')
-    .optional({ checkFalsy: true }) 
-    .isURL().withMessage('Invalid LinkedIn URL'),
-
-  // Boolean/Numeric fields (Best practice to validate these too)
-  body('attendedEvent')
+  body("attendedEvent")
     .optional()
-    .isBoolean().withMessage('attendedEvent must be true or false'),
+    .isBoolean().withMessage("attendedEvent must be true or false"),
 
-  body('sponsorshipBalance')
+  body("sponsorshipBalance")
     .optional()
-    .isFloat({ min: 0 }).withMessage('sponsorshipBalance must be a positive number'),
-
-  validate
+    .isFloat({ min: 0 }).withMessage("Must be a positive number"),
 ];
 
-// EDUCATION (DEGREES)
-export const degreeValidation = [
-  body('title').trim().notEmpty().withMessage('Degree title is required').escape(),
-  body('institution').trim().notEmpty().withMessage('Institution is required').escape(),
-  body('completionDate').optional({ checkFalsy: true }).isISO8601().withMessage('Invalid date format'),
-  body('officialUrl').optional({ checkFalsy: true }).isURL().withMessage('Invalid University URL'),
-  validate
+// CREATE
+export const profileCreateValidation = [
+  body("fullName")
+    .trim()
+    .notEmpty().withMessage("Full name is required")
+    .escape(),
+
+  ...profileRules,
+  validate,
 ];
 
-// EMPLOYMENT (WORK)
-export const workValidation = [
-  body('jobTitle').trim().notEmpty().withMessage('Job title is required').escape(),
-  body('company').trim().notEmpty().withMessage('Company name is required').escape(),
-  body('startDate').notEmpty().withMessage('Start date is required').isISO8601().withMessage('Please enter a valid date (YYYY-MM-DD)'),
-  body('endDate').optional({ checkFalsy: true }).isISO8601().withMessage('Invalid end date format'),
-  body('description').optional({ checkFalsy: true }).trim().escape(),
-  validate
+// UPDATE
+export const profileUpdateValidation = [
+  body("fullName")
+    .optional()
+    .trim()
+    .notEmpty().withMessage("Full name cannot be empty")
+    .escape(),
+
+  ...profileRules,
+  validate,
 ];
 
-// CERTIFICATIONS
-export const certificationValidation = [
-  body('title').trim().notEmpty().withMessage('Certification name is required').escape(),
-  body('issuer').trim().notEmpty().withMessage('Organization is required').escape(),
-  body('completionDate').optional({ checkFalsy: true }).isISO8601().withMessage('Invalid date'),
-  body('certificationUrl').optional({ checkFalsy: true }).isURL().withMessage('Invalid URL'),
-  validate
+
+/**
+ * DEGREE
+ */
+
+const degreeRules = [
+  body("completionDate")
+    .optional({ checkFalsy: true })
+    .isISO8601().withMessage("Invalid date format"),
+
+  body("officialUrl")
+    .optional({ checkFalsy: true })
+    .isURL().withMessage("Invalid University URL"),
 ];
 
-// LICENSES
-export const licenseValidation = [
-  body('title').trim().notEmpty().withMessage('License name is required').escape(),
-  body('awardingBody').trim().notEmpty().withMessage('Organization is required').escape(),
-  body('completionDate').optional({ checkFalsy: true }).isISO8601().withMessage('Invalid date'),
-  body('licenseUrl').optional({ checkFalsy: true }).isURL().withMessage('Invalid URL'),
-  validate
+export const degreeCreateValidation = [
+  body("title").trim().notEmpty().withMessage("Degree title is required").escape(),
+  body("institution").trim().notEmpty().withMessage("Institution is required").escape(),
+  ...degreeRules,
+  validate,
 ];
 
-// COURSES
-export const courseValidation = [
-  body('title').trim().notEmpty().withMessage('Course name is required').escape(),
-  body('institution').trim().notEmpty().withMessage('Institution is required').escape(),
-  body('completionDate').optional({ checkFalsy: true }).isISO8601().withMessage('Invalid date'),
-  body('courseUrl').optional({ checkFalsy: true }).isURL().withMessage('Invalid URL'),
-  validate
+export const degreeUpdateValidation = [
+  body("title").optional().trim().notEmpty().withMessage("Title cannot be empty").escape(),
+  body("institution").optional().trim().notEmpty().withMessage("Institution cannot be empty").escape(),
+  ...degreeRules,
+  validate,
+];
+
+
+/**
+ * WORK / EXPERIENCE
+ */
+
+const workRules = [
+  body("endDate")
+    .optional({ checkFalsy: true })
+    .isISO8601().withMessage("Invalid end date format"),
+
+  body("description")
+    .optional({ checkFalsy: true })
+    .trim()
+    .escape(),
+];
+
+export const workCreateValidation = [
+  body("jobTitle").trim().notEmpty().withMessage("Job title is required").escape(),
+  body("company").trim().notEmpty().withMessage("Company name is required").escape(),
+
+  body("startDate")
+    .notEmpty().withMessage("Start date is required")
+    .isISO8601().withMessage("Invalid start date"),
+
+  ...workRules,
+  validate,
+];
+
+export const workUpdateValidation = [
+  body("jobTitle").optional().trim().notEmpty().withMessage("Job title cannot be empty").escape(),
+  body("company").optional().trim().notEmpty().withMessage("Company cannot be empty").escape(),
+
+  body("startDate")
+    .optional()
+    .isISO8601().withMessage("Invalid start date"),
+
+  ...workRules,
+  validate,
+];
+
+
+/**
+ * CERTIFICATIONS
+ */
+
+const certificationRules = [
+  body("completionDate")
+    .optional({ checkFalsy: true })
+    .isISO8601().withMessage("Invalid date"),
+
+  body("certificationUrl")
+    .optional({ checkFalsy: true })
+    .isURL().withMessage("Invalid URL"),
+];
+
+export const certificationCreateValidation = [
+  body("title").trim().notEmpty().withMessage("Certification name is required").escape(),
+  body("issuer").trim().notEmpty().withMessage("Organization is required").escape(),
+  ...certificationRules,
+  validate,
+];
+
+export const certificationUpdateValidation = [
+  body("title").optional().trim().notEmpty().withMessage("Title cannot be empty").escape(),
+  body("issuer").optional().trim().notEmpty().withMessage("Issuer cannot be empty").escape(),
+  ...certificationRules,
+  validate,
+];
+
+
+/**
+ * LICENSES
+ */
+
+const licenseRules = [
+  body("completionDate")
+    .optional({ checkFalsy: true })
+    .isISO8601().withMessage("Invalid date"),
+
+  body("licenseUrl")
+    .optional({ checkFalsy: true })
+    .isURL().withMessage("Invalid URL"),
+];
+
+export const licenseCreateValidation = [
+  body("title").trim().notEmpty().withMessage("License name is required").escape(),
+  body("awardingBody").trim().notEmpty().withMessage("Organization is required").escape(),
+  ...licenseRules,
+  validate,
+];
+
+export const licenseUpdateValidation = [
+  body("title").optional().trim().notEmpty().withMessage("Title cannot be empty").escape(),
+  body("awardingBody").optional().trim().notEmpty().withMessage("Organization cannot be empty").escape(),
+  ...licenseRules,
+  validate,
+];
+
+
+/**
+ * COURSES
+ */
+
+const courseRules = [
+  body("completionDate")
+    .optional({ checkFalsy: true })
+    .isISO8601().withMessage("Invalid date"),
+
+  body("courseUrl")
+    .optional({ checkFalsy: true })
+    .isURL().withMessage("Invalid URL"),
+];
+
+export const courseCreateValidation = [
+  body("title").trim().notEmpty().withMessage("Course name is required").escape(),
+  body("institution").trim().notEmpty().withMessage("Institution is required").escape(),
+  ...courseRules,
+  validate,
+];
+
+export const courseUpdateValidation = [
+  body("title").optional().trim().notEmpty().withMessage("Title cannot be empty").escape(),
+  body("institution").optional().trim().notEmpty().withMessage("Institution cannot be empty").escape(),
+  ...courseRules,
+  validate,
 ];
 
 /**

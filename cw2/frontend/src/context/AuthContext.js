@@ -4,13 +4,13 @@ import * as authService from "../api/authService";
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(null); // ONLY auth user
   const [loading, setLoading] = useState(true);
 
+  // Load logged-in user on app start / refresh
   const fetchUser = async () => {
     try {
       const res = await authService.getMe();
-      console.log("User fetched:", res.data.email);
       setUser(res.data);
     } catch {
       setUser(null);
@@ -23,6 +23,17 @@ export const AuthProvider = ({ children }) => {
     fetchUser();
   }, []);
 
+  // Login
+  const loginUser = async (form) => {
+    const loginRes = await authService.login(form);
+    const userRes = await authService.getMe();
+
+    setUser(userRes.data);
+
+    return loginRes.data;
+  };
+
+  // Logout
   const logoutUser = async () => {
     await authService.logout();
     setUser(null);
@@ -30,7 +41,13 @@ export const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider
-      value={{ user, setUser, loading, logoutUser }}
+      value={{
+        user,
+        loading,
+        loginUser,
+        logoutUser,
+        fetchUser,
+      }}
     >
       {children}
     </AuthContext.Provider>
