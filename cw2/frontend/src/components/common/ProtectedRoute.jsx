@@ -13,28 +13,17 @@
 
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
+import Loader from "../../components/common/Loader";
 
 export default function ProtectedRoute({ children, allowedRoles }) {
-  const { user, loading } = useAuth();
+  const { user, authLoading } = useAuth();
 
-  if (loading) return <p className="text-center mt-10">Loading...</p>;
+  if (authLoading) return <Loader />;
 
-  // 1. Check if user is logged in
-  if (!user) {
-    return <Navigate to="/" />;
-  }
+  if (!user) return <Navigate to="/" replace />;
 
-  // 2. Check if user role is authorized
   if (allowedRoles && !allowedRoles.includes(user.role)) {
-    if (user.role === "alumni") {
-      return <Navigate to="/profile" replace />;
-    }
-
-    if (user.role === "dashboard") {
-      return <Navigate to="/dashboard" replace />;
-    }
-
-    return <Navigate to="/" replace />;
+    return <Navigate to="/unauthorized" replace />;
   }
 
   return children;

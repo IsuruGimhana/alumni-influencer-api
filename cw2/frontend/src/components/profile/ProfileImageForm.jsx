@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Camera } from "lucide-react";
 
-export default function ProfileImageForm({ profile, onSubmit }) {
+export default function ProfileImageForm({ profile, onSubmit, loading, error }) {
   const [imagePreview, setImagePreview] = useState(profile.profileImage);
   const [file, setFile] = useState(null);
 
@@ -15,7 +15,7 @@ export default function ProfileImageForm({ profile, onSubmit }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit({ profileImage: file });
+    onSubmit( file );
   };
 
   return (
@@ -45,14 +45,22 @@ export default function ProfileImageForm({ profile, onSubmit }) {
 
         </div>
       </div>
+      {error?.length > 0 && (
+        <div className="text-sm text-red-600 bg-red-50 p-2 rounded-lg">
+          {error.map((e, i) => (
+            <p key={i}>{e.msg}</p>
+          ))}
+        </div>
+      )}
 
       {/* ACTIONS */}
       <div className="flex justify-end gap-3 pt-4">
         <button
           type="submit"
+          disabled={loading}
           className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
         >
-          Save
+          {loading ? "Uploading..." : "Save"}
         </button>
       </div>
 

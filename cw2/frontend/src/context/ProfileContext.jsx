@@ -35,12 +35,14 @@ export const ProfileProvider = ({ children }) => {
   // GET PROFILE
   // -----------------------------
   const fetchProfile = async () => {
+    console.log("user",user);
     if (!user) return;
 
     try {
       setLoadingProfile(true);
 
       const res = await profileService.getMyProfile();
+      console.log(res.data);
       const data = normalizeProfile(res);
 
       setProfile(data);

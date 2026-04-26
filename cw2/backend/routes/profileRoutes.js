@@ -4,7 +4,9 @@ import authorize from "../middleware/authorize.js";
 import upload from "../config/multer.js";
 import {
   getMyProfile,
-  createOrUpdateProfile,
+  // createOrUpdateProfile,
+  createProfile,
+  updateProfile,
   uploadImage,
   addDegree,
   updateDegree,
@@ -53,8 +55,8 @@ const router = express.Router();
 
 // --- Base Profile ---
 router.get("/me", protect, authorize("alumni"), getMyProfile);
-router.post("/", protect, authorize("alumni"), profileCreateValidation, createOrUpdateProfile);
-router.put("/", protect, authorize("alumni"), profileUpdateValidation, createOrUpdateProfile);
+router.post("/", protect, authorize("alumni"), profileCreateValidation, createProfile);
+router.put("/", protect, authorize("alumni"), profileUpdateValidation, updateProfile);
 router.post("/me/image", protect, authorize("alumni"), upload.single("profileImage"), imageUploadValidation, uploadImage);
 
 // --- Sub-Resources of Profile ---

@@ -1,6 +1,7 @@
 import { useState } from "react";
+import { sanitizePayload } from "../../utils/sanitizePayload";
 
-export default function ProfileForm({ profile, onSubmit }) {
+export default function ProfileForm({ profile, onSubmit, loading, error }) {
   const [form, setForm] = useState({
     fullName: profile?.fullName || "",
     city: profile?.city || "",
@@ -13,7 +14,8 @@ export default function ProfileForm({ profile, onSubmit }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit(form);
+    // onSubmit(form);
+    onSubmit(sanitizePayload(form));
   };
 
   const labelClass = "block text-sm text-gray-500 mb-1 font-medium";
@@ -97,18 +99,40 @@ export default function ProfileForm({ profile, onSubmit }) {
             type="number"
             step="0.01"
             value={form.sponsorshipBalance}
-            onChange={(e) => setForm({ ...form, sponsorshipBalance: e.target.value })}
+            // onChange={(e) => setForm({ ...form, sponsorshipBalance: e.target.value })}
+            onChange={(e) => {
+              const value = e.target.value;
+              setForm({
+                ...form,
+                sponsorshipBalance:
+                  value === "" ? "" : parseFloat(value),
+              });
+            }}
             className={inputClass}
           />
         </div>
       </div>
+      {error?.length > 0 && (
+        <div className="text-sm text-red-600 bg-red-50 p-2 rounded-lg">
+          {error.map((e, i) => (
+            <p key={i}>{e.msg}</p>
+          ))}
+        </div>
+      )}
 
       <div className="flex justify-end pt-4 border-t border-gray-200">
-        <button
+        {/* <button
           type="submit"
           className="bg-blue-700 hover:bg-blue-800 text-white px-6 py-1.5 rounded-full font-semibold transition shadow-sm"
         >
           Save
+        </button> */}
+        <button
+          type="submit"
+          disabled={loading}
+          className="bg-blue-700 hover:bg-blue-800 text-white px-6 py-1.5 rounded-full font-semibold transition shadow-sm disabled:opacity-50"
+        >
+          {loading ? "Saving..." : "Save"}
         </button>
       </div>
     </form>

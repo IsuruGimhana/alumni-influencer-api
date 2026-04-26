@@ -14,7 +14,9 @@ export const getMyProfile = async (req, res) => {
 
     const profileData = profile.toJSON(); // Convert to plain javascript object for easier manipulation instead of Json
 
-    if (!profileData.profileImage) profileData.profileImage = "/uploads/profile-default.jpg";
+    // console.log("controller:",profileData.profileImage);
+    // const baseUrl = process.env.BASE_URL; // e.g. http://localhost:5050
+    // if (!profileData.profileImage) profileData.profileImage = `${baseUrl}/uploads/profile-default.jpg`;
 
     res.status(200).json({ msg: "Profile retrieved successfully", profile: profileData });
   } catch (err) {
@@ -23,29 +25,112 @@ export const getMyProfile = async (req, res) => {
 };
 
 // Create / Update Profile
-export const createOrUpdateProfile = async (req, res) => {
+// export const createOrUpdateProfile = async (req, res) => {
+//   try {
+//     const { fullName, city, country, bio, linkedInUrl, attendedEvent, sponsorshipBalance } = req.body;
+
+//     // USE THE PROFILE ALREADY ATTACHED BY MIDDLEWARE
+//     let profile = req.user.Profile;
+
+//     if (profile) {
+//       // UPDATE
+//       // await profile.update({ fullName, city, country, bio, linkedInUrl, attendedEvent, sponsorshipBalance });
+//       await profile.update(req.body);
+//       return res.status(200).json({ msg: "Profile updated successfully", profile });
+//     } else {
+//       // CREATE
+//       profile = await Profile.create({ 
+//         fullName, city, country, bio, linkedInUrl, attendedEvent, sponsorshipBalance, 
+//         userId: req.user.id 
+//       });
+//       return res.status(201).json({ msg: "Profile created successfully", profile });
+//     }
+
+//   } catch (err) {
+//     res.status(500).json({ msg: err.message });
+//   }
+// };
+export const createProfile = async (req, res) => {
   try {
-    const { fullName, city, country, bio, linkedInUrl, attendedEvent, sponsorshipBalance } = req.body;
+    const existingProfile = req?.user?.Profile;
 
-    // USE THE PROFILE ALREADY ATTACHED BY MIDDLEWARE
-    let profile = req.user.Profile;
+    if (existingProfile) {
+      return res.status(404).json({ msg: "A profile already exists" });
+    }
+    const {
+      fullName,
+      city,
+      country,
+      bio,
+      linkedInUrl,
+      attendedEvent,
+      sponsorshipBalance,
+    } = req.body;
 
-    if (profile) {
-      // UPDATE
-      // await profile.update({ fullName, city, country, bio, linkedInUrl, attendedEvent, sponsorshipBalance });
-      await profile.update(req.body);
-      return res.status(200).json({ msg: "Profile updated successfully", profile });
-    } else {
-      // CREATE
-      profile = await Profile.create({ 
-        fullName, city, country, bio, linkedInUrl, attendedEvent, sponsorshipBalance, 
-        userId: req.user.id 
-      });
-      return res.status(201).json({ msg: "Profile created successfully", profile });
+    // safety check (prevents DB crash)
+    if (!fullName) {
+      return res.status(400).json({ msg: "Full name is required" });
     }
 
+    const baseUrl = process.env.BASE_URL; // e.g. http://localhost:5050
+
+    const profile = await Profile.create({
+      fullName,
+      city,
+      country,
+      bio,
+      linkedInUrl,
+      attendedEvent,
+      sponsorshipBalance,
+      profileImage: `${baseUrl}/uploads/profile-default.jpg`,
+      userId: req.user.id,
+    });
+
+    return res.status(201).json({
+      msg: "Profile created successfully",
+      profile,
+    });
   } catch (err) {
-    res.status(500).json({ msg: err.message });
+    return res.status(500).json({ msg: err.message });
+  }
+};
+
+export const updateProfile = async (req, res) => {
+  try {
+    const profile = req?.user?.Profile;
+
+    if (!profile) {
+      return res.status(404).json({ msg: "Profile not found" });
+    }
+
+    const {
+      fullName,
+      city,
+      country,
+      bio,
+      linkedInUrl,
+      attendedEvent,
+      sponsorshipBalance,
+    } = req.body;
+
+    const updateData = {
+      fullName: fullName ?? profile.fullName,
+      city: city ?? profile.city,
+      country: country ?? profile.country,
+      bio: bio ?? profile.bio,
+      linkedInUrl: linkedInUrl ?? profile.linkedInUrl,
+      attendedEvent: attendedEvent ?? profile.attendedEvent,
+      sponsorshipBalance: sponsorshipBalance ?? profile.sponsorshipBalance,
+    };
+
+    await profile.update(updateData);
+
+    return res.status(200).json({
+      msg: "Profile updated successfully",
+      profile,
+    });
+  } catch (err) {
+    return res.status(500).json({ msg: err.message });
   }
 };
 
@@ -63,9 +148,11 @@ export const uploadImage = async (req, res) => {
       return res.status(404).json({ msg: "Create a profile before uploading an image." });
     }
 
+    const baseUrl = process.env.BASE_URL; // e.g. http://localhost:5050
     // 3. Update the profile field with the new path
     // Multer gives us 'filename' (the unique name it generated)
-    profile.profileImage = `/uploads/${req.file.filename}`;
+    // profile.profileImage = `/uploads/${req.file.filename}`;
+    profile.profileImage = `${baseUrl}/uploads/${req.file.filename}`;
     
     await profile.save();
 

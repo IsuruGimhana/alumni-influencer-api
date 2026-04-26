@@ -7,9 +7,17 @@ import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/auth/ResetPasswordPage";
 import ProtectedRoute from "./components/common/ProtectedRoute";
 
+import InitialProfileSetupPage from "./pages/profile/InitialProfileSetupPage";
 import ProfilePage from "./pages/profile/ProfilePage";
 
+import { useAuth } from "./hooks/useAuth";
+import Loader from "./components/common/Loader";
+
 function App() {
+  
+  const { authLoading } = useAuth();
+  if (authLoading) return <Loader />;
+
   return (
     <BrowserRouter>
       <Routes>
@@ -18,9 +26,8 @@ function App() {
         <Route path="/verify/:token" element={<VerifyEmailPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
-        <Route path="/profile" element={<ProfilePage />} />
+        {/* <Route path="/profile" element={<ProfilePage />} /> */}
 
-        {/* Generic Protected Route for any logged in user */}
         <Route
           path="/dashboard"
           element={
@@ -29,8 +36,6 @@ function App() {
             </ProtectedRoute>
           }
         />
-
-        {/* Role-Specific Protected Route only for Alumni */}
         <Route
           path="/profile" 
           element={
@@ -39,6 +44,15 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+        <Route
+          path="/create-profile" 
+          element={
+            <ProtectedRoute allowedRoles={["alumni"]}>
+              <InitialProfileSetupPage />
+            </ProtectedRoute>
+          }
+        />        
       </Routes>
     </BrowserRouter>
   );

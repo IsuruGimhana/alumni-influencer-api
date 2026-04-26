@@ -95,9 +95,9 @@ export const register = async (req, res) => {
     // );
     // res.status(201).json({ msg: "Registration successful." });
     // TODO: change this back after checking.
-    // res.status(201).json({ msg: "A verification link has been sent! Check your inbox." });
     console.log(verificationLink);
-    res.status(201).json({ msg: verificationLink }); // TEMP: Return the verification link in response for testing
+    res.status(201).json({ msg: "A verification link has been sent! Check your inbox." });
+    // res.status(201).json({ msg: verificationLink }); // TEMP: Return the verification link in response for testing
 
   } catch (err) {
     // res.status(500).json({ error: "Server error during registration." });
@@ -137,7 +137,8 @@ export const login = async (req, res) => {
     res.cookie("token", token, {
       httpOnly: true,
       secure: false, // set true in production (HTTPS)
-      sameSite: "strict",
+      // sameSite: "strict",
+      sameSite: "lax",
       maxAge: 24 * 60 * 60 * 1000, // 1 day
     });
 
@@ -222,8 +223,8 @@ export const forgotPassword = async (req, res) => {
     //   `<p>Reset password: <a href="${resetLink}">${resetLink}</a></p>`
     // );
 
-    res.status(200).json({ msg: "A reset link has been sent! Check your inbox." });
     console.log(resetLink);
+    res.status(200).json({ msg: "A reset link has been sent! Check your inbox." });
 
   } catch (err) {
     res.status(500).json({ msg: err.message });

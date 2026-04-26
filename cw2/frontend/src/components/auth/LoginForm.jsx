@@ -6,7 +6,7 @@ import { normalizeError } from "../../utils/normalizeError";
 import { Eye, EyeOff } from "lucide-react";
 
 export default function LoginForm() {
-  const { user, loginUser } = useAuth();
+  const { loginUser } = useAuth();
   const navigate = useNavigate();
 
   const [form, setForm] = useState({ email: "", password: "" });
@@ -26,13 +26,20 @@ export default function LoginForm() {
       // setUser(res?.data);
       setSuccess(res?.msg);
       console.log(res?.msg);
-      console.log(user);
+      console.log(res?.user);
       setForm({
         email: "",
         password: "",
       });
       setTimeout(() => {
-        navigate("/dashboard");
+        if (res?.user?.role === "alumni") {
+          if (!res?.profile) navigate("/create-profile");
+          else navigate("/profile");
+        } else if (res?.user?.role === "dashboard") {
+          navigate("/dashboard");
+        } else if (res?.user?.role === "ar_app") {
+          navigate("/ar");
+        }
       }, 1000);
     } catch (err) {
       // setError("Invalid email or password");
@@ -88,13 +95,22 @@ export default function LoginForm() {
       </button>
 
       {/* Error */}
-      {error.length > 0 && (
+      {/* {error.length > 0 && (
         <div className="mb-3 text-sm text-red-600 bg-red-50 p-2 rounded-lg">
           <ul className="list-disc pl-5 space-y-1">
             {error.map((e, i) => (
               <li key={i}>{e.msg}</li>
             ))}
           </ul>
+        </div>
+      )} */}
+      {error.length > 0 && (
+        <div className="mb-3 text-sm text-red-600 bg-red-50 p-3 rounded-lg space-y-1">
+          {error.map((e, i) => (
+            <p key={i} className="leading-tight">
+              {e.msg}
+            </p>
+          ))}
         </div>
       )}
 

@@ -53,20 +53,17 @@ const profileRules = [
   body("city")
     .optional({ checkFalsy: true })
     .trim()
-    .isLength({ max: 100 }).withMessage("City must be under 100 characters")
-    .escape(),
+    .isLength({ max: 100 }).withMessage("City must be under 100 characters"),
 
   body("country")
     .optional({ checkFalsy: true })
     .trim()
-    .isLength({ max: 100 }).withMessage("Country must be under 100 characters")
-    .escape(),
+    .isLength({ max: 100 }).withMessage("Country must be under 100 characters"),
 
   body("bio")
     .optional({ checkFalsy: true })
     .trim()
-    .isLength({ max: 500 }).withMessage("Bio must be under 500 characters")
-    .escape(),
+    .isLength({ max: 500 }).withMessage("Bio must be under 500 characters"),
 
   body("linkedInUrl")
     .optional({ checkFalsy: true })
@@ -85,8 +82,7 @@ const profileRules = [
 export const profileCreateValidation = [
   body("fullName")
     .trim()
-    .notEmpty().withMessage("Full name is required")
-    .escape(),
+    .notEmpty().withMessage("Full name is required"),
 
   ...profileRules,
   validate,
@@ -97,8 +93,7 @@ export const profileUpdateValidation = [
   body("fullName")
     .optional()
     .trim()
-    .notEmpty().withMessage("Full name cannot be empty")
-    .escape(),
+    .notEmpty().withMessage("Full name cannot be empty"),
 
   ...profileRules,
   validate,
@@ -120,15 +115,15 @@ const degreeRules = [
 ];
 
 export const degreeCreateValidation = [
-  body("title").trim().notEmpty().withMessage("Degree title is required").escape(),
-  body("institution").trim().notEmpty().withMessage("Institution is required").escape(),
+  body("title").trim().notEmpty().withMessage("Degree title is required"),
+  body("institution").trim().notEmpty().withMessage("Institution is required"),
   ...degreeRules,
   validate,
 ];
 
 export const degreeUpdateValidation = [
-  body("title").optional().trim().notEmpty().withMessage("Title cannot be empty").escape(),
-  body("institution").optional().trim().notEmpty().withMessage("Institution cannot be empty").escape(),
+  body("title").optional().trim().notEmpty().withMessage("Title cannot be empty"),
+  body("institution").optional().trim().notEmpty().withMessage("Institution cannot be empty"),
   ...degreeRules,
   validate,
 ];
@@ -145,13 +140,12 @@ const workRules = [
 
   body("description")
     .optional({ checkFalsy: true })
-    .trim()
-    .escape(),
+    .trim(),
 ];
 
 export const workCreateValidation = [
-  body("jobTitle").trim().notEmpty().withMessage("Job title is required").escape(),
-  body("company").trim().notEmpty().withMessage("Company name is required").escape(),
+  body("jobTitle").trim().notEmpty().withMessage("Job title is required"),
+  body("company").trim().notEmpty().withMessage("Company name is required"),
 
   body("startDate")
     .notEmpty().withMessage("Start date is required")
@@ -162,8 +156,8 @@ export const workCreateValidation = [
 ];
 
 export const workUpdateValidation = [
-  body("jobTitle").optional().trim().notEmpty().withMessage("Job title cannot be empty").escape(),
-  body("company").optional().trim().notEmpty().withMessage("Company cannot be empty").escape(),
+  body("jobTitle").optional().trim().notEmpty().withMessage("Job title cannot be empty"),
+  body("company").optional().trim().notEmpty().withMessage("Company cannot be empty"),
 
   body("startDate")
     .optional()
@@ -189,15 +183,15 @@ const certificationRules = [
 ];
 
 export const certificationCreateValidation = [
-  body("title").trim().notEmpty().withMessage("Certification name is required").escape(),
-  body("issuer").trim().notEmpty().withMessage("Organization is required").escape(),
+  body("title").trim().notEmpty().withMessage("Certification name is required"),
+  body("issuer").trim().notEmpty().withMessage("Organization is required"),
   ...certificationRules,
   validate,
 ];
 
 export const certificationUpdateValidation = [
-  body("title").optional().trim().notEmpty().withMessage("Title cannot be empty").escape(),
-  body("issuer").optional().trim().notEmpty().withMessage("Issuer cannot be empty").escape(),
+  body("title").optional().trim().notEmpty().withMessage("Title cannot be empty"),
+  body("issuer").optional().trim().notEmpty().withMessage("Issuer cannot be empty"),
   ...certificationRules,
   validate,
 ];
@@ -218,15 +212,15 @@ const licenseRules = [
 ];
 
 export const licenseCreateValidation = [
-  body("title").trim().notEmpty().withMessage("License name is required").escape(),
-  body("awardingBody").trim().notEmpty().withMessage("Organization is required").escape(),
+  body("title").trim().notEmpty().withMessage("License name is required"),
+  body("awardingBody").trim().notEmpty().withMessage("Organization is required"),
   ...licenseRules,
   validate,
 ];
 
 export const licenseUpdateValidation = [
-  body("title").optional().trim().notEmpty().withMessage("Title cannot be empty").escape(),
-  body("awardingBody").optional().trim().notEmpty().withMessage("Organization cannot be empty").escape(),
+  body("title").optional().trim().notEmpty().withMessage("Title cannot be empty"),
+  body("awardingBody").optional().trim().notEmpty().withMessage("Organization cannot be empty"),
   ...licenseRules,
   validate,
 ];
@@ -247,15 +241,15 @@ const courseRules = [
 ];
 
 export const courseCreateValidation = [
-  body("title").trim().notEmpty().withMessage("Course name is required").escape(),
-  body("institution").trim().notEmpty().withMessage("Institution is required").escape(),
+  body("title").trim().notEmpty().withMessage("Course name is required"),
+  body("institution").trim().notEmpty().withMessage("Institution is required"),
   ...courseRules,
   validate,
 ];
 
 export const courseUpdateValidation = [
-  body("title").optional().trim().notEmpty().withMessage("Title cannot be empty").escape(),
-  body("institution").optional().trim().notEmpty().withMessage("Institution cannot be empty").escape(),
+  body("title").optional().trim().notEmpty().withMessage("Title cannot be empty"),
+  body("institution").optional().trim().notEmpty().withMessage("Institution cannot be empty"),
   ...courseRules,
   validate,
 ];
@@ -277,6 +271,8 @@ export const idParamValidation = [
  * Validates that a file was uploaded and is an image
  */
 export const imageUploadValidation = (req, res, next) => {
+  console.log("file:", req.file);
+  console.log("body:", req.body);
   // 1. Check if file exists (Multer puts it in req.file)
   if (!req.file) {
     return res.status(400).json({ msg: "Please select an image to upload." });
@@ -318,7 +314,6 @@ export const apiKeyGenerationValidation = [
   body('label')
     .optional({ checkFalsy: true }) // Allow it to be empty, default will be set in controller
     .trim()
-    .isLength({ max: 50 }).withMessage('Label must be under 50 characters')
-    .escape(),
+    .isLength({ max: 50 }).withMessage('Label must be under 50 characters'),
   validate
 ];

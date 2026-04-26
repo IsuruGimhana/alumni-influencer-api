@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import * as authService from "../../api/authService";
+import Loader from "../../components/common/Loader";
 
 export default function VerifyEmailPage() {
   const { token } = useParams();
@@ -29,9 +30,10 @@ export default function VerifyEmailPage() {
         
         {/* Icon */}
         <div className="mb-4">
-          {status === "loading" && (
+          {/* {status === "loading" && (
             <div className="w-12 h-12 border-4 border-blue-500 border-dashed rounded-full animate-spin mx-auto"></div>
-          )}
+          )} */}
+          {status === "loading" && <Loader />}
 
           {status === "success" && (
             <div className="text-green-500 text-5xl">✔</div>
