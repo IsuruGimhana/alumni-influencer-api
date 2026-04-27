@@ -7,33 +7,71 @@ import { Op, fn, col } from "sequelize";
 /**
  * Generate a new API Key for the ar_app or dashboard client
  */
+// export const generateApiKey = async (req, res) => {
+//   try {
+//     // 1. Secure token generation using crypto
+//     const newKey = crypto.randomBytes(32).toString('hex'); 
+    
+//     // Assign scopes based on the client type (passed in request body)
+//     // Example: clientType could be 'dashboard' or 'ar_app'
+//     let assignedScopes = ["read:alumni_of_day"]; // Default
+//     if (req.user.role === 'dashboard') {
+//         assignedScopes = ["read:alumni", "read:analytics"];
+//     }
+
+//     // 2. Create the key record in the database
+//     const apiKey = await ApiKey.create({
+//       key: newKey,
+//       label: req?.body?.label || "Default Key",
+//       userId: req?.user?.id,
+//       scopes: assignedScopes
+//     });
+
+//     // 3. Respond with 201 Created and the raw key 
+//     res.status(201).json({ 
+//       msg: "API Key generated successfully", 
+//       apiKey: newKey 
+//     });
+//   } catch (err) {
+//     // 4. Proper error handling for database or logic failures 
+//     res.status(500).json({ msg: err.message });
+//   }
+// };
+
 export const generateApiKey = async (req, res) => {
   try {
-    // 1. Secure token generation using crypto
-    const newKey = crypto.randomBytes(32).toString('hex'); 
-    
-    // Assign scopes based on the client type (passed in request body)
-    // Example: clientType could be 'dashboard' or 'ar_app'
-    let assignedScopes = ["read:alumni_of_day"]; // Default
-    if (req.user.role === 'dashboard') {
-        assignedScopes = ["read:alumni", "read:analytics"];
+    const { label, clientType } = req.body;
+
+    const allowedTypes = ["dashboard", "ar_app"];
+
+    if (!allowedTypes.includes(clientType)) {
+      return res.status(400).json({ msg: "Invalid client type" });
     }
 
-    // 2. Create the key record in the database
+    const newKey = crypto.randomBytes(32).toString("hex");
+
+    let assignedScopes = [];
+
+    if (clientType === "dashboard") {
+      assignedScopes = ["read:alumni", "read:analytics"];
+    } else if (clientType === "ar_app") {
+      assignedScopes = ["read:alumni_of_day"];
+    }
+
     const apiKey = await ApiKey.create({
       key: newKey,
-      label: req.body?.label || "Default Key",
+      label: label?.trim() || `${clientType} key`,
       userId: req.user.id,
-      scopes: assignedScopes
+      scopes: assignedScopes,
+      clientType
     });
 
-    // 3. Respond with 201 Created and the raw key 
-    res.status(201).json({ 
-      msg: "API Key generated successfully", 
-      apiKey: newKey 
+    res.status(201).json({
+      msg: `API Key for ${clientType} generated`,
+      apiKey: newKey
     });
+
   } catch (err) {
-    // 4. Proper error handling for database or logic failures 
     res.status(500).json({ msg: err.message });
   }
 };

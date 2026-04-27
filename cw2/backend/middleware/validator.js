@@ -40,7 +40,7 @@ export const passwordValidation = [
 export const roleValidation = [
   body('role')
     .optional() // Allow it to be optional, default will be set in controller
-    .isIn(['alumni', 'ar_app', 'dashboard']).withMessage('Role must be one of: alumni, ar_app, dashboard'),
+    .isIn(['alumni', 'developer', 'dashboard']).withMessage('Role must be one of: alumni, developer, dashboard'),
   validate
 ];
 
@@ -149,6 +149,7 @@ export const workCreateValidation = [
 
   body("startDate")
     .notEmpty().withMessage("Start date is required")
+    .bail()
     .isISO8601().withMessage("Invalid start date"),
 
   ...workRules,
@@ -271,8 +272,8 @@ export const idParamValidation = [
  * Validates that a file was uploaded and is an image
  */
 export const imageUploadValidation = (req, res, next) => {
-  console.log("file:", req.file);
-  console.log("body:", req.body);
+  // console.log("file:", req.file);
+  // console.log("body:", req.body);
   // 1. Check if file exists (Multer puts it in req.file)
   if (!req.file) {
     return res.status(400).json({ msg: "Please select an image to upload." });
@@ -310,10 +311,24 @@ export const bidValidation = [
  * API KEY ROUTES VALIDATION
  */
 // API Key Generation Validation
+// export const apiKeyGenerationValidation = [
+//   body('label')
+//     .optional({ checkFalsy: true }) // Allow it to be empty, default will be set in controller
+//     .trim()
+//     .isLength({ max: 50 }).withMessage('Label must be under 50 characters'),
+//   validate
+// ];
 export const apiKeyGenerationValidation = [
-  body('label')
-    .optional({ checkFalsy: true }) // Allow it to be empty, default will be set in controller
+  // Validate client type
+  body("clientType")
+    .notEmpty().withMessage("Client type is required")
+    .isIn(["dashboard", "ar_app"]).withMessage("Invalid client type"),
+
+  // Validate label
+  body("label")
+    .optional({ checkFalsy: true })
     .trim()
-    .isLength({ max: 50 }).withMessage('Label must be under 50 characters'),
+    .isLength({ max: 50 }).withMessage("Label must be under 50 characters"),
+
   validate
 ];

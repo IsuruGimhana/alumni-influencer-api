@@ -49,7 +49,7 @@ const User = sequelize.define("User", {
 
   role: {
     type: DataTypes.STRING,
-    defaultValue: "alumni", // alumni | ar_app | dashboard
+    defaultValue: "alumni", // alumni | developer | dashboard
   }
   
 }, {

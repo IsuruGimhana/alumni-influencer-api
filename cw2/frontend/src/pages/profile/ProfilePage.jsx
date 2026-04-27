@@ -1,9 +1,9 @@
 import { useState } from "react";
-import ExperienceCard from "../../components/profile/ExperienceCard";
-import DegreeCard from "../../components/profile/DegreeCard";
-import CertificationCard from "../../components/profile/CertificationCard";
-import CourseCard from "../../components/profile/CourseCard";
-import LicenseCard from "../../components/profile/LicenseCard";
+import ExperienceCard from "../../components/profile/experience/ExperienceCard";
+import DegreeCard from "../../components/profile/education/DegreeCard";
+import CertificationCard from "../../components/profile/certification/CertificationCard";
+import CourseCard from "../../components/profile/course/CourseCard";
+import LicenseCard from "../../components/profile/license/LicenseCard";
 import { Pencil, BadgeDollarSign, CalendarCheck2 } from "lucide-react";
 
 import ProfileFormModal from "../../components/profile/ProfileFormModal";

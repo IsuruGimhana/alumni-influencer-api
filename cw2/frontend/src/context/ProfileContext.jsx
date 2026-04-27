@@ -108,7 +108,7 @@ export const ProfileProvider = ({ children }) => {
 
     setProfile((prev) => ({
       ...prev,
-      degrees: [...(prev?.degrees || []), entry],
+      Degrees: [...(prev?.Degrees || []), entry],
     }));
 
     // return entry;
@@ -121,7 +121,7 @@ export const ProfileProvider = ({ children }) => {
 
     setProfile((prev) => ({
       ...prev,
-      degrees: prev.degrees.map((d) =>
+      Degrees: prev.Degrees.map((d) =>
         d.id === id ? entry : d
       ),
     }));
@@ -136,7 +136,7 @@ export const ProfileProvider = ({ children }) => {
 
     setProfile((prev) => ({
       ...prev,
-      degrees: prev.degrees.filter((d) => d.id !== id),
+      Degrees: prev.Degrees.filter((d) => d.id !== id),
     }));
 
     // return entry;
@@ -152,7 +152,7 @@ export const ProfileProvider = ({ children }) => {
 
     setProfile((prev) => ({
       ...prev,
-      certifications: [...(prev?.certifications || []), entry],
+      Certifications: [...(prev?.Certifications || []), entry],
     }));
 
     // return entry;
@@ -165,7 +165,7 @@ export const ProfileProvider = ({ children }) => {
 
     setProfile((prev) => ({
       ...prev,
-      certifications: prev.certifications.map((c) =>
+      Certifications: prev.Certifications.map((c) =>
         c.id === id ? entry : c
       ),
     }));
@@ -180,7 +180,7 @@ export const ProfileProvider = ({ children }) => {
 
     setProfile((prev) => ({
       ...prev,
-      certifications: prev.certifications.filter((c) => c.id !== id),
+      Certifications: prev.Certifications.filter((c) => c.id !== id),
     }));
 
     // return entry;
@@ -196,10 +196,9 @@ export const ProfileProvider = ({ children }) => {
 
     setProfile((prev) => ({
       ...prev,
-      experience: [...(prev?.experience || []), entry],
+      Works: [...(prev?.Works || []), entry],
     }));
 
-    // return entry;
     return res.data;
   };
 
@@ -209,25 +208,22 @@ export const ProfileProvider = ({ children }) => {
 
     setProfile((prev) => ({
       ...prev,
-      experience: prev.experience.map((e) =>
+      Works: prev.Works.map((e) =>
         e.id === id ? entry : e
       ),
     }));
 
-    // return entry;
     return res.data;
   };
 
   const deleteExperience = async (id) => {
     const res = await profileService.deleteExperience(id);
-    const entry = normalizeEntry(res);
 
     setProfile((prev) => ({
       ...prev,
-      experience: prev.experience.filter((e) => e.id !== id),
+      Works: prev.Works.filter((e) => e.id !== id),
     }));
 
-    // return entry;
     return res.data;
   };
 
@@ -240,7 +236,7 @@ export const ProfileProvider = ({ children }) => {
 
     setProfile((prev) => ({
       ...prev,
-      licenses: [...(prev?.licenses || []), entry],
+      Licenses: [...(prev?.Licenses || []), entry],
     }));
 
     // return entry;
@@ -253,7 +249,7 @@ export const ProfileProvider = ({ children }) => {
 
     setProfile((prev) => ({
       ...prev,
-      licenses: prev.licenses.map((l) =>
+      Licenses: prev.Licenses.map((l) =>
         l.id === id ? entry : l
       ),
     }));
@@ -268,7 +264,7 @@ export const ProfileProvider = ({ children }) => {
 
     setProfile((prev) => ({
       ...prev,
-      licenses: prev.licenses.filter((l) => l.id !== id),
+      Licenses: prev.Licenses.filter((l) => l.id !== id),
     }));
 
     // return entry;
@@ -284,7 +280,7 @@ export const ProfileProvider = ({ children }) => {
 
     setProfile((prev) => ({
       ...prev,
-      courses: [...(prev?.courses || []), entry],
+      Courses: [...(prev?.Courses || []), entry],
     }));
 
     // return entry;
@@ -297,7 +293,7 @@ export const ProfileProvider = ({ children }) => {
 
     setProfile((prev) => ({
       ...prev,
-      courses: prev.courses.map((c) =>
+      Courses: prev.Courses.map((c) =>
         c.id === id ? entry : c
       ),
     }));
@@ -312,7 +308,7 @@ export const ProfileProvider = ({ children }) => {
 
     setProfile((prev) => ({
       ...prev,
-      courses: prev.courses.filter((c) => c.id !== id),
+      Courses: prev.Courses.filter((c) => c.id !== id),
     }));
 
     // return entry;

@@ -1,17 +1,24 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import LoginPage from "./pages/auth/LoginPage";
 import RegisterPage from "./pages/auth/RegisterPage";
-import DashboardPage from "./pages/auth/DashboardPage";
 import VerifyEmailPage from "./pages/auth/VerifyEmailPage";
 import ForgotPasswordPage from "./pages/auth/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/auth/ResetPasswordPage";
 import ProtectedRoute from "./components/common/ProtectedRoute";
 
 import InitialProfileSetupPage from "./pages/profile/InitialProfileSetupPage";
-import ProfilePage from "./pages/profile/ProfilePage";
 
 import { useAuth } from "./hooks/useAuth";
 import Loader from "./components/common/Loader";
+
+import AlumniLayout from "./components/layout/AlumniLayout";
+import ArAppLayout from "./components/layout/ArAppLayout";
+import DashboardLayout from "./components/layout/DashboardLayout";
+
+import ProfilePage from "./pages/profile/ProfilePage";
+import BiddingPage from "./pages/bid/BiddingPage";
+
+import DashboardPage from "./pages/auth/DashboardPage";
 
 function App() {
   
@@ -26,9 +33,57 @@ function App() {
         <Route path="/verify/:token" element={<VerifyEmailPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
-        {/* <Route path="/profile" element={<ProfilePage />} /> */}
+
+        {/* ALUMNI */}
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute allowedRoles={["alumni"]}>
+              <AlumniLayout>
+                <ProfilePage />
+              </AlumniLayout>
+            </ProtectedRoute>
+          }
+        />
 
         <Route
+          path="/bidding"
+          element={
+            <ProtectedRoute allowedRoles={["alumni"]}>
+              <AlumniLayout>
+                <BiddingPage />
+              </AlumniLayout>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* AR APP */}
+        <Route
+          path="/alumni-of-day"
+          element={
+            <ProtectedRoute allowedRoles={["ar_app"]}>
+              <ArAppLayout>
+                <div>Alumni of the Day</div>
+              </ArAppLayout>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* DASHBOARD */}
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute allowedRoles={["dashboard"]}>
+              <DashboardLayout>
+                <DashboardPage />
+              </DashboardLayout>
+            </ProtectedRoute>
+          }
+        />
+        {/* <Route path="/bidding" element={<BiddingPage />} /> */}
+        {/* <Route path="/profile" element={<ProfilePage />} /> */}
+
+        {/* <Route
           path="/dashboard"
           element={
             <ProtectedRoute allowedRoles={["dashboard"]}>
@@ -52,7 +107,7 @@ function App() {
               <InitialProfileSetupPage />
             </ProtectedRoute>
           }
-        />        
+        />         */}
       </Routes>
     </BrowserRouter>
   );
