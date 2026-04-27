@@ -35,7 +35,7 @@ export const selectDailyWinner = async () => {
     if (!winnerFound && winCount < limit) {
       // Mark as Alumni of the Day
       bid.isWinner = true;
-      bid.status = "winning";
+      bid.status = "won";
       winnerFound = true;
 
       // Deduct the bid amount from the user's sponsorship balance

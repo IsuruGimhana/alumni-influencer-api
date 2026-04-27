@@ -173,7 +173,7 @@ export default function ProfilePage() {
                   {/* Sponsorship */}
                   <div className="flex items-center gap-2 bg-green-50 text-green-700 px-3 py-1 rounded-full text-sm">
                     <BadgeDollarSign size={16} />
-                    <span>Rs. {profile?.sponsorshipBalance}</span>
+                    <span>${profile?.sponsorshipBalance}</span>
                   </div>
 
                   {/* Event */}

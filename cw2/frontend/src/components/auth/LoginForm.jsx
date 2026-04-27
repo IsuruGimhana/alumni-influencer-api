@@ -33,12 +33,12 @@ export default function LoginForm() {
       });
       setTimeout(() => {
         if (res?.user?.role === "alumni") {
-          if (!res?.profile) navigate("/create-profile");
-          else navigate("/profile");
+          if (!res?.profile) navigate("/alumni/setup");
+          else navigate("/alumni/profile");
+        } else if (res?.user?.role === "developer") {
+          navigate("/developer/api-keys");
         } else if (res?.user?.role === "dashboard") {
           navigate("/dashboard");
-        } else if (res?.user?.role === "ar_app") {
-          navigate("/ar");
         }
       }, 1000);
     } catch (err) {

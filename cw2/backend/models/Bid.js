@@ -14,7 +14,7 @@ const Bid = sequelize.define("Bid", {
   },
   status: {
     type: DataTypes.STRING,
-    defaultValue: "pending", // pending | winning | lost
+    defaultValue: "pending", // pending | won | lost
   },
   bidDate: {
     type: DataTypes.DATEONLY, // YYYY-MM-DD

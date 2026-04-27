@@ -1,62 +1,440 @@
-import React from "react";
-import { Link, useLocation } from "react-router-dom";
+// import { Link, useNavigate, useLocation } from "react-router-dom";
+// import { useAuth } from "../../hooks/useAuth";
+// import { useProfile } from "../../hooks/useProfile";
+// import {
+//   User,
+//   TrendingUp,
+//   Settings,
+//   LayoutDashboard,
+//   LogOut,
+// } from "lucide-react";
+
+// export default function Sidebar() {
+//   const { user, logoutUser } = useAuth();
+//   const { profile } = useProfile();
+//   const navigate = useNavigate();
+//   const location = useLocation();
+
+//   const role = user?.role;
+//   const hasProfile = !!profile;
+
+//   const handleLogout = () => {
+//     logoutUser();
+//     navigate("/");
+//   };
+
+//   const isActive = (path) =>
+//     location.pathname === path
+//       ? "bg-blue-50 text-blue-700 font-medium"
+//       : "text-gray-700 hover:bg-gray-100";
+
+//   return (
+//     <div className="w-64 h-screen bg-[#F9FAFB] border-r border-gray-200 fixed flex flex-col">
+
+//       {/* LOGO / TITLE */}
+//       <div className="p-6 border-b border-gray-200">
+//         <h1 className="text-lg font-semibold text-gray-900">
+//           Alumni System
+//         </h1>
+//       </div>
+
+//       {/* NAV */}
+//       <div className="flex-1 p-4 space-y-2">
+
+//         {/* ================= ALUMNI ================= */}
+//         {role === "alumni" && (
+//           <>
+//             {!hasProfile && (
+//               <Link
+//                 to="/alumni/setup"
+//                 className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition ${isActive("/alumni/setup")}`}
+//               >
+//                 <Settings size={18} />
+//                 Setup Profile
+//               </Link>
+//             )}
+
+//             {hasProfile && (
+//               <>
+//                 <Link
+//                   to="/alumni/profile"
+//                   className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition ${isActive("/alumni/profile")}`}
+//                 >
+//                   <User size={18} />
+//                   Profile
+//                 </Link>
+
+//                 <Link
+//                   to="/alumni/bidding"
+//                   className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition ${isActive("/alumni/bidding")}`}
+//                 >
+//                   <TrendingUp size={18} />
+//                   Bidding
+//                 </Link>
+//               </>
+//             )}
+//           </>
+//         )}
+
+//         {/* ================= DEVELOPER ================= */}
+//         {role === "developer" && (
+//           <Link
+//             to="/developer/api-keys"
+//             className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition ${isActive("/developer/api-keys")}`}
+//           >
+//             <Settings size={18} />
+//             API Keys
+//           </Link>
+//         )}
+
+//         {/* ================= DASHBOARD ================= */}
+//         {role === "dashboard" && (
+//           <>
+//             <Link
+//               to="/dashboard"
+//               className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition ${isActive("/dashboard")}`}
+//             >
+//               <LayoutDashboard size={18} />
+//               Analytics
+//             </Link>
+
+//             <Link
+//               to="/dashboard/directory"
+//               className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition ${isActive("/dashboard/directory")}`}
+//             >
+//               <User size={18} />
+//               Alumni Directory
+//             </Link>
+//           </>
+//         )}
+//       </div>
+
+//       {/* LOGOUT */}
+//       <div className="p-4 border-t border-gray-200">
+//         <button
+//           onClick={handleLogout}
+//           className="flex items-center gap-2 text-sm text-red-600 hover:bg-red-50 w-full px-3 py-2 rounded-lg transition"
+//         >
+//           <LogOut size={18} />
+//           Logout
+//         </button>
+//       </div>
+//     </div>
+//   );
+// }
+
+// import { useState } from "react";
+// import { Link, useNavigate } from "react-router-dom";
+// import { Menu, X } from "lucide-react";
+// import { useAuth } from "../../hooks/useAuth";
+// import { useProfile } from "../../hooks/useProfile";
+
+// export default function Sidebar() {
+//   const { user, logoutUser } = useAuth();
+//   const { profile } = useProfile();
+//   const navigate = useNavigate();
+
+//   const [open, setOpen] = useState(false);
+
+//   const handleLogout = () => {
+//     logoutUser();
+//     navigate("/");
+//   };
+
+//   const role = user?.role;
+//   const hasProfile = !!profile;
+
+//   const linkClass =
+//     "block py-2 px-3 rounded-lg text-gray-700 hover:bg-gray-100 transition";
+
+//   return (
+//     <>
+//       {/* MOBILE TOP BAR */}
+//       <div className="md:hidden flex items-center justify-between p-4 bg-white border-b fixed w-full z-50">
+//         <h1 className="font-bold text-gray-800">Alumni System</h1>
+
+//         <button onClick={() => setOpen(true)}>
+//           <Menu />
+//         </button>
+//       </div>
+
+//       {/* OVERLAY */}
+//       {open && (
+//         <div
+//           className="fixed inset-0 bg-black/30 z-40 md:hidden"
+//           onClick={() => setOpen(false)}
+//         />
+//       )}
+
+//       {/* SIDEBAR */}
+//       <div
+//         className={`
+//           fixed md:static z-50
+//           w-64 h-screen
+//           bg-[#F9FAFB] border-r border-gray-200
+//           p-4 flex flex-col
+//           transition-transform duration-300
+//           ${open ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
+//         `}
+//       >
+//         {/* CLOSE BUTTON (mobile only) */}
+//         <div className="md:hidden flex justify-end mb-4">
+//           <button onClick={() => setOpen(false)}>
+//             <X />
+//           </button>
+//         </div>
+
+//         <h1 className="text-xl font-bold mb-6 text-gray-800">
+//           Alumni System
+//         </h1>
+
+//         {/* ALUMNI */}
+//         {role === "alumni" && (
+//           <>
+//             {!hasProfile && (
+//               <Link
+//                 to="/alumni/setup"
+//                 className={linkClass}
+//                 onClick={() => setOpen(false)}
+//               >
+//                 Setup Profile
+//               </Link>
+//             )}
+
+//             {hasProfile && (
+//               <>
+//                 <Link
+//                   to="/alumni/profile"
+//                   className={linkClass}
+//                   onClick={() => setOpen(false)}
+//                 >
+//                   Profile
+//                 </Link>
+
+//                 <Link
+//                   to="/alumni/bidding"
+//                   className={linkClass}
+//                   onClick={() => setOpen(false)}
+//                 >
+//                   Bidding
+//                 </Link>
+//               </>
+//             )}
+//           </>
+//         )}
+
+//         {/* DEVELOPER */}
+//         {role === "developer" && (
+//           <Link
+//             to="/developer/api-keys"
+//             className={linkClass}
+//             onClick={() => setOpen(false)}
+//           >
+//             API Keys
+//           </Link>
+//         )}
+
+//         {/* DASHBOARD */}
+//         {role === "dashboard" && (
+//           <>
+//             <Link
+//               to="/dashboard"
+//               className={linkClass}
+//               onClick={() => setOpen(false)}
+//             >
+//               Analytics
+//             </Link>
+
+//             <Link
+//               to="/dashboard/directory"
+//               className={linkClass}
+//               onClick={() => setOpen(false)}
+//             >
+//               Alumni Directory
+//             </Link>
+//           </>
+//         )}
+
+//         {/* LOGOUT */}
+//         <button
+//           onClick={handleLogout}
+//           className="mt-auto bg-red-700 hover:bg-red-800 text-white py-2 rounded-lg transition"
+//         >
+//           Logout
+//         </button>
+//       </div>
+//     </>
+//   );
+// }
+
+import { useState } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Menu, X } from "lucide-react";
+import { useAuth } from "../../hooks/useAuth";
+import { useProfile } from "../../hooks/useProfile";
+
 import {
+  User,
+  TrendingUp,
+  Settings,
   LayoutDashboard,
-  Users,
-  BarChart3,
-  GraduationCap,
-  Gavel,
-  UserCircle,
-  Key,
-  Trophy
+  LogOut,
 } from "lucide-react";
 
-const menus = {
-  alumni: [
-    { path: "/profile", label: "Profile", icon: UserCircle },
-    { path: "/bidding", label: "Bidding", icon: Gavel }
-  ],
-  ar_app: [
-    { path: "/alumni-of-day", label: "Alumni of the Day", icon: Trophy },
-    { path: "/api-management", label: "API Management", icon: Key }
-  ],
-  dashboard: [
-    { path: "/analytics", label: "System Analytics", icon: BarChart3 },
-    { path: "/api-management", label: "API Management", icon: Key }
-  ]
-};
-
-export default function Sidebar({ role }) {
+export default function Sidebar() {
+  const { user, logoutUser } = useAuth();
+  const { profile } = useProfile();
+  const navigate = useNavigate();
   const location = useLocation();
 
-  const linkClass = (path) => `
-    flex items-center gap-3 p-3 rounded-lg transition
-    ${location.pathname === path
-      ? "bg-blue-600 text-white"
-      : "hover:bg-slate-800 text-slate-300"}
-  `;
+  const [open, setOpen] = useState(false);
+
+  const role = user?.role;
+  const hasProfile = !!profile;
+
+  const handleLogout = () => {
+    logoutUser();
+    navigate("/");
+  };
+
+  const isActive = (path) =>
+    location.pathname === path
+      ? "bg-blue-50 text-blue-700 font-medium"
+      : "text-gray-700 hover:bg-gray-100";
+
+  const linkClass =
+    "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition";
 
   return (
-    <aside className="w-64 bg-slate-900 text-white p-6 fixed h-full flex flex-col">
+    <>
+      {/* MOBILE TOP BAR */}
+      <div className="md:hidden flex items-center justify-between p-4 bg-white border-b fixed w-full z-50">
+        <h1 className="font-bold text-gray-800">Alumni System</h1>
 
-      <div className="flex items-center gap-2 text-blue-400 font-bold text-2xl mb-10">
-        <GraduationCap size={28} />
-        UniStats
+        <button onClick={() => setOpen(true)}>
+          <Menu />
+        </button>
       </div>
 
-      <nav className="space-y-2 flex-1">
-        <p className="text-xs text-slate-500 mb-4 uppercase">Menu</p>
+      {/* OVERLAY */}
+      {open && (
+        <div
+          className="fixed inset-0 bg-black/30 z-40 md:hidden"
+          onClick={() => setOpen(false)}
+        />
+      )}
 
-        {menus[role].map((item) => {
-          const Icon = item.icon;
-          return (
-            <Link key={item.path} to={item.path} className={linkClass(item.path)}>
-              <Icon size={18} />
-              {item.label}
+      {/* SIDEBAR */}
+      <div
+        className={`
+          fixed md:sticky md:top-0 z-50
+          w-64 h-screen
+          bg-white border-r border-gray-200
+          flex flex-col
+          transition-transform duration-300
+          ${open ? "translate-x-0" : "-translate-x-full md:translate-x-0"}
+        `}
+      >
+        {/* HEADER */}
+        <div className="p-6 border-b border-gray-200 flex justify-between items-center">
+          <h1 className="text-lg font-semibold text-gray-900">
+            Alumni System
+          </h1>
+
+          {/* CLOSE BTN (mobile only) */}
+          <button className="md:hidden" onClick={() => setOpen(false)}>
+            <X />
+          </button>
+        </div>
+
+        {/* NAV */}
+        <div className="flex-1 p-4 space-y-2">
+
+          {/* ALUMNI */}
+          {role === "alumni" && (
+            <>
+              {!hasProfile && (
+                <Link
+                  to="/alumni/setup"
+                  onClick={() => setOpen(false)}
+                  className={`${linkClass} ${isActive("/alumni/setup")}`}
+                >
+                  <Settings size={18} />
+                  Setup Profile
+                </Link>
+              )}
+
+              {hasProfile && (
+                <>
+                  <Link
+                    to="/alumni/profile"
+                    onClick={() => setOpen(false)}
+                    className={`${linkClass} ${isActive("/alumni/profile")}`}
+                  >
+                    <User size={18} />
+                    Profile
+                  </Link>
+
+                  <Link
+                    to="/alumni/bidding"
+                    onClick={() => setOpen(false)}
+                    className={`${linkClass} ${isActive("/alumni/bidding")}`}
+                  >
+                    <TrendingUp size={18} />
+                    Bidding
+                  </Link>
+                </>
+              )}
+            </>
+          )}
+
+          {/* DEVELOPER */}
+          {role === "developer" && (
+            <Link
+              to="/developer/api-keys"
+              onClick={() => setOpen(false)}
+              className={`${linkClass} ${isActive("/developer/api-keys")}`}
+            >
+              <Settings size={18} />
+              API Keys
             </Link>
-          );
-        })}
-      </nav>
-    </aside>
+          )}
+
+          {/* DASHBOARD */}
+          {role === "dashboard" && (
+            <>
+              <Link
+                to="/dashboard"
+                onClick={() => setOpen(false)}
+                className={`${linkClass} ${isActive("/dashboard")}`}
+              >
+                <LayoutDashboard size={18} />
+                Analytics
+              </Link>
+
+              <Link
+                to="/dashboard/directory"
+                onClick={() => setOpen(false)}
+                className={`${linkClass} ${isActive("/dashboard/directory")}`}
+              >
+                <User size={18} />
+                Alumni Directory
+              </Link>
+            </>
+          )}
+        </div>
+
+        {/* LOGOUT */}
+        <div className="p-4 border-t border-gray-200">
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-2 text-sm text-red-600 hover:bg-red-50 w-full px-3 py-2 rounded-lg transition"
+          >
+            <LogOut size={18} />
+            Logout
+          </button>
+        </div>
+      </div>
+    </>
   );
 }

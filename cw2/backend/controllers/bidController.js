@@ -73,7 +73,7 @@ export const placeBid = async (req, res) => {
 
     res.status(statusCode).json({ 
       msg: "Bid placed", 
-      status: isHighest ? "Winning" : "Outbid",
+      status: isHighest ? "Currently Leading" : "Outbid",
       currentBid: bid.amount,
       monthlyWins: `${winsThisMonth}/${allowedWins}`
     });
@@ -95,7 +95,7 @@ export const getMyBid = async (req, res) => {
 
     res.status(200).json({
       amount: bid.amount,
-      status: bid.status, // "pending", "winning", or "lost"
+      status: bid.status, // "pending", "won", or "lost"
       liveStatus: bid.amount >= highest ? "Currently Leading" : "Outbid"
     });
   } catch (err) {

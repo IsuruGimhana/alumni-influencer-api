@@ -322,7 +322,8 @@ export const apiKeyGenerationValidation = [
   // Validate client type
   body("clientType")
     .notEmpty().withMessage("Client type is required")
-    .isIn(["dashboard", "ar_app"]).withMessage("Invalid client type"),
+    .bail()
+    .isIn(["dashboard", "ar_app"]).withMessage("Client type must be one of: dashboard, ar_app"),
 
   // Validate label
   body("label")

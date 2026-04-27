@@ -38,7 +38,7 @@ export const BidProvider = ({ children }) => {
     const res = await bidService.placeBid({ amount });
 
     // update UI immediately
-    setMyBid(res.data);
+    // setMyBid(res.data);
 
     return res.data;
   };

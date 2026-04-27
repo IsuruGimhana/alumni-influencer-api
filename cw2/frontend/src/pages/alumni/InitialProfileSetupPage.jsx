@@ -37,7 +37,7 @@ export default function InitialProfileSetupPage() {
       console.log(res);
       setSuccess(res?.msg || "Profile created successfully");
       setTimeout(() => {
-        navigate("/profile"); // Redirect to main profile after success
+        navigate("/alumni/profile"); // Redirect to main profile after success
       }, 1000);
     } catch (err) {
       // setError(err.response?.data?.msg || "Failed to create profile. Please check your inputs.");

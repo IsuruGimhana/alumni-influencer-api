@@ -47,9 +47,14 @@ const User = sequelize.define("User", {
     type: DataTypes.DATE,
   },
 
+  // role: {
+  //   type: DataTypes.STRING,
+  //   defaultValue: "alumni", // alumni | developer | dashboard
+  // }
   role: {
-    type: DataTypes.STRING,
-    defaultValue: "alumni", // alumni | developer | dashboard
+    type: DataTypes.ENUM("alumni", "developer", "dashboard"),
+    allowNull: false,
+    defaultValue: "alumni"
   }
   
 }, {

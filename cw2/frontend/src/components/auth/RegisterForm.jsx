@@ -88,7 +88,7 @@ export default function RegisterForm() {
           }
         >
           <option value="alumni">Alumni</option>
-          <option value="ar_app">AR App User</option>
+          <option value="developer">Developer</option>
           <option value="dashboard">Dashboard Admin</option>
         </select>
         
