@@ -106,13 +106,22 @@ export default function RegisterForm() {
       </button>
 
       {/* Error */}
-      {error.length > 0 && (
+      {/* {error.length > 0 && (
         <div className="mb-3 text-sm text-red-600 bg-red-50 p-2 rounded-lg">
           <ul className="list-disc pl-5 space-y-1">
             {error.map((e, i) => (
               <li key={i}>{e.msg}</li>
             ))}
           </ul>
+        </div>
+      )} */}
+      {error.length > 0 && (
+        <div className="mb-3 text-sm text-red-600 bg-red-50 p-3 rounded-lg space-y-1">
+          {error.map((e, i) => (
+            <p key={i} className="leading-tight">
+              {e.msg}
+            </p>
+          ))}
         </div>
       )}
 

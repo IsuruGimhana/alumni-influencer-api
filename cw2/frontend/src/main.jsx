@@ -7,15 +7,18 @@ import { AuthProvider } from "./context/AuthContext.jsx";
 import { ProfileProvider } from "./context/ProfileContext.jsx";
 import { ApiKeyProvider } from "./context/ApiKeyContext.jsx";
 import { BidProvider } from "./context/BidContext.jsx";
+import { DashboardProvider } from "./context/DashboardContext.jsx";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <AuthProvider>
       <ApiKeyProvider>
         <ProfileProvider>
-          <BidProvider>
-            <App />
-          </BidProvider>
+          <DashboardProvider>
+            <BidProvider>
+              <App />
+            </BidProvider>
+          </DashboardProvider>
         </ProfileProvider>
       </ApiKeyProvider>
     </AuthProvider>

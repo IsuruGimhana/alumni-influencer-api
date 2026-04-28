@@ -17,7 +17,10 @@ import {
   getGeographicalDist,
   getCertificationTrend,
   getProgrammeDistribution,
-  getAlumniDirectory
+  getAlumniDirectory,
+  exportAlumniCSV,
+  getProgrammes,
+  getGraduationYears
 } from "../controllers/apiKeyController.js";
 
 import {
@@ -66,5 +69,11 @@ router.get("/analytics/programme-distribution", trackUsage("read:analytics"), ge
 // DASHBOARD (DIRECTORY)
 
 router.get("/directory", trackUsage("read:alumni"), getAlumniDirectory);
+
+router.get("/directory/export", trackUsage("read:alumni"), exportAlumniCSV);
+
+router.get("/directory/options/programmes", trackUsage("read:alumni"), getProgrammes);
+
+router.get("/directory/options/years", trackUsage("read:alumni"), getGraduationYears);
 
 export default router;

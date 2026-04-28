@@ -49,6 +49,15 @@ export const mockData = {
         Degrees: [{ title: "BSc Computer Science", completionDate: "2023-07-01" }],
         Work: [{ jobTitle: "Software Engineer", company: "Google" }]
       }
+    },
+    {
+      id: 1,
+      firstName: "John",
+      lastName: "Doe",
+      Profile: {
+        Degrees: [{ title: "BSc Computer Science", completionDate: "2023-07-01" }],
+        Work: [{ jobTitle: "Software Engineer", company: "Google" }]
+      }
     }
   ]
 };

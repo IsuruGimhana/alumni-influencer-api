@@ -2,7 +2,8 @@ import db from "../models/index.js";
 const { ApiKey, ApiUsage, Bid, User, Profile, Degree, Certification, License, Course, Work } = db;
 import crypto from "crypto";
 // import { get } from "http";
-import { Op, fn, col } from "sequelize";
+import { Op, fn, col, literal } from "sequelize";
+import { Parser } from 'json2csv';
 
 /**
  * Generate a new API Key for the ar_app or dashboard client
@@ -441,43 +442,236 @@ export const getProgrammeDistribution = async (req, res) => {
 /**
  * Get Alumni Directory (Filtered List)
  */
+// export const getAlumniDirectory = async (req, res) => {
+//   try {
+//     const alumni = await User.findAll({
+//       attributes: { exclude: ["password"] },
+//       where: { 
+//         role: 'alumni',
+//         ...getFilters(req.query)
+//       },
+//       include: [{
+//         model: Profile,
+//         required: true, // Only include users with profiles
+//         // where: getFilters(req.query), // Apply filters to the Profile
+//         // include: [Degree, Certification, License, Course, Work]
+//         // attributes: [], 
+//         include: [
+//           { model: Degree,
+//           // where: getFilters(req.query), // Apply filters to the Degree
+//           // attributes: [], 
+//           }, 
+//           { model: Certification, attributes: [] }, 
+//           { model: License, attributes: [] }, 
+//           { model: Course, attributes: [] }, 
+//           { model: Work,
+//           // attributes: [], 
+//           }
+//         ]
+//       }],
+//       // raw: true,
+//       subQuery: false
+
+//     });
+
+//     // Map the results to a cleaner, flat structure
+//     const formattedAlumni = alumni.map(user => {
+//       const profile = user.Profile || {};
+//       const degree = profile.Degrees?.[0] || {};
+//       const work = profile.Works?.[0] || {};
+
+//       return {
+//         id: user.id,
+//         fullName: profile.fullName || "N/A",
+//         email: user.email,
+//         location: profile.city && profile.country ? `${profile.city}, ${profile.country}` : "N/A",
+//         programme: degree.title || "N/A",
+//         graduationYear: degree.completionDate ? new Date(degree.completionDate).getFullYear() : "N/A",
+//         currentRole: work.jobTitle || "Unemployed/Private",
+//         company: work.company || "N/A",
+//         profileImage: profile.profileImage || "/uploads/profile-default.jpg"
+//       };
+//     });
+//     res.json(formattedAlumni);
+//   } catch (err) {
+//     res.status(500).json({ msg: "Error fetching directory" });
+//   }
+// };
+
+/**
+ * Export Alumni Directory to CSV
+ */
+// export const exportAlumniCSV = async (req, res) => {
+//   try {
+//     const alumni = await User.findAll({
+//       where: { 
+//         role: 'alumni',
+//         ...getFilters(req.query)
+//       },
+//       include: [{
+//         model: Profile,
+//         required: true,
+//         include: [Degree, Work]
+//       }],
+//       subQuery: false
+//     });
+
+//     // Flatten data for CSV rows
+//     const csvData = alumni.map(a => ({
+//       FirstName: a.firstName,
+//       LastName: a.lastName,
+//       Email: a.email,
+//       Programme: a.Profile?.Degrees?.[0]?.title || 'N/A',
+//       GraduationYear: a.Profile?.Degrees?.[0]?.year || 'N/A',
+//       CurrentRole: a.Profile?.Work?.[0]?.jobTitle || 'N/A',
+//       Industry: a.Profile?.Work?.[0]?.industry || 'N/A'
+//     }));
+
+//     const json2csvParser = new Parser();
+//     const csv = json2csvParser.parse(csvData);
+
+//     res.header('Content-Type', 'text/csv');
+//     res.attachment('alumni_directory_export.csv');
+//     return res.send(csv);
+//   } catch (err) {
+//     res.status(500).json({ msg: "Export failed", error: err.message });
+//   }
+// };
+
+export const formatAlumni = (user) => {
+  const profile = user.Profile || {};
+  const degree = profile.Degrees?.[0] || {};
+
+  const work =
+    profile.Works?.find(w => w.isCurrent) ||
+    profile.Works?.sort(
+      (a, b) =>
+        new Date(b.startDate || 0) - new Date(a.startDate || 0)
+    )[0] ||
+    {};
+
+  return {
+    id: user.id,
+    fullName: profile.fullName || "N/A",
+    email: user.email,
+
+    location:
+      profile.city && profile.country
+        ? `${profile.city}, ${profile.country}`
+        : "N/A",
+
+    programme: degree.title || "N/A",
+
+    graduationYear: degree.completionDate
+      ? new Date(degree.completionDate).getFullYear()
+      : "N/A",
+
+    currentRole: work.jobTitle || "Unemployed/Private",
+    company: work.company || "N/A",
+
+    profileImage:
+      profile.profileImage || "/uploads/profile-default.jpg",
+  };
+};
+
 export const getAlumniDirectory = async (req, res) => {
   try {
     const alumni = await User.findAll({
-      where: { 
-        role: 'alumni',
-        ...getFilters(req.query)
+      where: {
+        role: "alumni",
+        ...getFilters(req.query),
       },
-      include: [{
-        model: Profile,
-        required: true, // Only include users with profiles
-        // where: getFilters(req.query), // Apply filters to the Profile
-        // include: [Degree, Certification, License, Course, Work]
-        attributes: [], 
-        include: [{
-          model: Degree,
-          // where: getFilters(req.query), // Apply filters to the Degree
-          attributes: [], 
-        }, {
-          model: Certification,
-          attributes: [], 
-        }, {
-          model: License,
-          attributes: [], 
-        }, {
-          model: Course,
-          attributes: [], 
-        }, {
-          model: Work,
-          attributes: [], 
-        }]
-      }],
-      // raw: true,
-      subQuery: false
-
+      include: [
+        {
+          model: Profile,
+          required: true,
+          include: [Degree, Work],
+        },
+      ],
+      subQuery: false,
     });
-    res.json(alumni);
+
+    const formatted = alumni.map(formatAlumni);
+
+    res.json(formatted);
   } catch (err) {
     res.status(500).json({ msg: "Error fetching directory" });
+  }
+};
+
+export const exportAlumniCSV = async (req, res) => {
+  try {
+    const alumni = await User.findAll({
+      where: {
+        role: "alumni",
+        ...getFilters(req.query),
+      },
+      include: [
+        {
+          model: Profile,
+          required: true,
+          include: [Degree, Work],
+        },
+      ],
+      subQuery: false,
+    });
+
+    const csvData = alumni.map((u) => {
+      const a = formatAlumni(u);
+
+      return {
+        FirstName: a.fullName,
+        Email: a.email,
+        Location: a.location,
+        Programme: a.programme,
+        GraduationYear: a.graduationYear,
+        CurrentRole: a.currentRole,
+        Company: a.company,
+      };
+    });
+
+    const csv = new Parser().parse(csvData);
+
+    res.header("Content-Type", "text/csv");
+    res.attachment("alumni_directory_export.csv");
+    res.send(csv);
+  } catch (err) {
+    res.status(500).json({
+      msg: "Export failed",
+      error: err.message,
+    });
+  }
+};
+
+export const getProgrammes = async (req, res) => {
+  const programmes = await Degree.findAll({
+    attributes: [
+      [fn('DISTINCT', col('title')), 'title']
+    ],
+    raw: true
+  });
+
+  res.json(programmes.map(p => p.title));
+};
+
+export const getGraduationYears = async (req, res) => {
+  try {
+    const years = await Degree.findAll({
+      attributes: [
+        [fn('EXTRACT', literal('YEAR FROM "completionDate"')), 'year']
+      ],
+      group: ['year'],
+      raw: true
+    });
+
+    res.json(
+      years
+        .map(y => Number(y.year))
+        .sort((a, b) => b - a)
+    );
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ msg: "Failed to fetch years" });
   }
 };
