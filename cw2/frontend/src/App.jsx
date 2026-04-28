@@ -27,7 +27,8 @@ import InitialProfileSetupPage from "./pages/alumni/InitialProfileSetupPage";
 import ApiKeyPage from "./pages/developer/ApiKeyPage";
 
 // Dashboard
-import DashboardPage from "./pages/dashboard/DashboardPage";
+// import DashboardPage from "./pages/dashboard/DashboardPage";
+import DashboardHomePage from "./pages/dashboard/DashboardHomePage";
 import AlumniDirectoryPage from "./pages/dashboard/AlumniDirectoryPage";
 
 function App() {
@@ -101,7 +102,8 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={["dashboard"]}>
               <DashboardLayout>
-                <DashboardPage />
+                {/* <DashboardPage /> */}
+                <DashboardHomePage />
               </DashboardLayout>
             </ProtectedRoute>
           }

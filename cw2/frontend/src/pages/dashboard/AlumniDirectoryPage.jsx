@@ -1,6 +1,7 @@
 import { useContext } from "react";
-import { Users, Download } from "lucide-react";
+import { Users, Download, ChevronDown } from "lucide-react";
 import { DashboardContext } from "../../context/DashboardContext";
+import { FilterDropdown } from "../../components/common/FilterDropdown";
 
 export default function AlumniDirectoryPage() {
   const {
@@ -39,7 +40,7 @@ export default function AlumniDirectoryPage() {
         </div>
 
         {/* FILTERS */}
-        <div className="bg-white p-4 rounded-xl border flex gap-4 shadow-sm">
+        {/* <div className="bg-white p-4 rounded-xl border flex gap-4 shadow-sm">
 
           <select
             className="border p-2 rounded-md flex-1 focus:ring-2 focus:ring-blue-500 outline-none"
@@ -66,6 +67,28 @@ export default function AlumniDirectoryPage() {
               <option key={i} value={y}>{y}</option>
             ))}
           </select>
+
+        </div> */}
+        <div className="bg-white p-4 rounded-xl border shadow-sm flex gap-4">
+
+          <FilterDropdown
+            label="All Programmes"
+            value={filters.programme}
+            options={programmes}
+            onChange={(val) =>
+              setFilters({ ...filters, programme: val })
+            }
+          />
+
+          <FilterDropdown
+            label="All Years"
+            value={filters.gradDate}
+            options={years}
+            width="w-44"
+            onChange={(val) =>
+              setFilters({ ...filters, gradDate: val })
+            }
+          />
 
         </div>
 

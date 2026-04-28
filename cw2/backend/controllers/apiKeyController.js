@@ -237,7 +237,7 @@ const getFilters = (query, base = '') => {
 
 /**
  * 1. Curriculum Skills Gap
- * Identifies certifications alumni have obtained that are not in the curriculum.
+ * Counts external certifications held by alumni to identify skills missing from the university curriculum.
  */
 export const getSkillsGapData = async (req, res) => {
   console.log("Received query parameters for skills gap:", req.query);
@@ -270,8 +270,8 @@ export const getSkillsGapData = async (req, res) => {
 };
 
 /**
- * 3. Employment Distribution (Job Titles)
- * Identifies the most common job titles among alumni, with filters for programme and graduation date.
+ * 2. Job Title Trends
+ * Identifies the top 5 most common professional roles (e.g., Software Engineer) held by graduates.
  */
 export const getJobTitleTrends = async (req, res) => {
   try {
@@ -304,8 +304,8 @@ export const getJobTitleTrends = async (req, res) => {
 };
 
 /**
- * 4. Top n Employers
- * Identifies the most common employers (companies) among alumni, with filters for programme and graduation date.
+ * 3. Top Employers
+ * Lists the top 5 companies or organizations that employ the highest number of alumni.
  */
 export const getTopEmployers = async (req, res) => {
   try {
@@ -337,8 +337,8 @@ export const getTopEmployers = async (req, res) => {
 };
 
 /**
- * 5. Geographical Distribution
- * Identifies the most common cities or countries where alumni are located, with filters for programme and graduation date.
+ * 4. Geographical Distribution
+ * Maps the global reach of alumni by counting total graduates per city and country.
  */
 export const getGeographicalDist = async (req, res) => {
   try {
@@ -364,8 +364,8 @@ export const getGeographicalDist = async (req, res) => {
 };
 
 /**
- * 6. Certification Trends
- * Identifies the most common certifications among alumni, with filters for programme and graduation date.
+ * 5. Certification Trends
+ * Tracks the growth of upskilling by grouping certification completion counts by month and year.
  */
 export const getCertificationTrend = async (req, res) => {
   try {
@@ -402,6 +402,10 @@ export const getCertificationTrend = async (req, res) => {
   }
 };
 
+/**
+ * 6. Programme Distribution
+ * Breaks down the alumni population by their specific field of study or degree title.
+ */
 export const getProgrammeDistribution = async (req, res) => {
   try {
     const countUserId = fn('COUNT', fn('DISTINCT', col('User.id')));
