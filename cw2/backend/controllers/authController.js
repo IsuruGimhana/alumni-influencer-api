@@ -86,17 +86,15 @@ export const register = async (req, res) => {
     const verificationLink = `${frontendUrl}/verify/${token}`;
 
     // Send verification email
-    // TODO: change this back after checking.
-    // await sendEmail(
-    //   email,
-    //   "Verify your Westminster Account",
-    //   `<p>Click the link below to verify your account. This link expires in 1 hour:</p>
-    //    <a href="${verificationLink}">${verificationLink}</a>`
-    // );
-    // res.status(201).json({ msg: "Registration successful." });
-    // TODO: change this back after checking.
-    console.log(verificationLink);
-    res.status(201).json({ msg: "A verification link has been sent! Check your inbox." });
+    await sendEmail(
+      email,
+      "Verify your Westminster Account",
+      `<p>Click the link below to verify your account. This link expires in 1 hour:</p>
+       <a href="${verificationLink}">${verificationLink}</a>`
+    );
+    res.status(201).json({ msg: "Registration successful." });
+    // console.log(verificationLink);
+    // res.status(201).json({ msg: "A verification link has been sent! Check your inbox." });
     // res.status(201).json({ msg: verificationLink }); // TEMP: Return the verification link in response for testing
 
   } catch (err) {
@@ -215,13 +213,11 @@ export const forgotPassword = async (req, res) => {
     const frontendUrl = process.env.CLIENT_URL || "http://localhost:5050";
     const resetLink = `${frontendUrl}/reset-password/${token}`;
 
-    // reuse your email function
-    // TODO: change this back after checking.
-    // await sendEmail(
-    //   email,
-    //   "Password Reset",
-    //   `<p>Reset password: <a href="${resetLink}">${resetLink}</a></p>`
-    // );
+    await sendEmail(
+      email,
+      "Password Reset",
+      `<p>Reset password: <a href="${resetLink}">${resetLink}</a></p>`
+    );
 
     console.log(resetLink);
     res.status(200).json({ msg: "A reset link has been sent! Check your inbox." });
