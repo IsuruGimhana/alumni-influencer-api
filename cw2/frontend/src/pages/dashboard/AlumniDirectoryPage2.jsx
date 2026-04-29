@@ -1,4 +1,4 @@
-import { useContext, useEffect } from "react";
+import { useContext } from "react";
 import { Users, Download, ChevronDown } from "lucide-react";
 import { DashboardContext } from "../../context/DashboardContext";
 import { FilterDropdown } from "../../components/common/FilterDropdown";
@@ -12,13 +12,7 @@ export default function AlumniDirectoryPage() {
     filters,
     setFilters,
     exportCSV,
-    exportPDF,
   } = useContext(DashboardContext);
-
-  useEffect(() => {
-    const saved = localStorage.getItem("savedFilter");
-    if (saved) setFilters(JSON.parse(saved));
-  }, []);
 
   return (
     <div className="min-h-screen bg-[#F3F2EF] pb-12">
@@ -36,25 +30,13 @@ export default function AlumniDirectoryPage() {
             </p>
           </div>
 
-          <div className="flex gap-2">
-
-            <button
-              onClick={exportCSV}
-              className="flex items-center gap-2 bg-slate-900 text-white px-4 py-2 rounded-lg hover:bg-slate-800"
-            >
-              <Download size={18} />
-              CSV
-            </button>
-
-            <button
-              onClick={exportPDF}
-              className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-500"
-            >
-              <Download size={18} />
-              PDF
-            </button>
-
-          </div>
+          <button
+            onClick={exportCSV}
+            className="flex items-center gap-2 bg-slate-900 text-white px-4 py-2 rounded-lg hover:bg-slate-800"
+          >
+            <Download size={18} />
+            Export CSV
+          </button>
         </div>
 
         {/* FILTERS */}
@@ -109,16 +91,6 @@ export default function AlumniDirectoryPage() {
           />
 
         </div>
-
-        <button
-          onClick={() => {
-            localStorage.setItem("savedFilter", JSON.stringify(filters));
-            alert("Filter saved!");
-          }}
-          className="text-xs px-3 py-2 border rounded-lg hover:bg-gray-100"
-        >
-          Save Filter
-        </button>
 
         {/* TABLE WRAPPER (card like profile sections) */}
         <div className="bg-white rounded-xl border shadow-sm overflow-hidden">

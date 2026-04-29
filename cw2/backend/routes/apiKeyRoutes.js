@@ -19,6 +19,8 @@ import {
   getProgrammeDistribution,
   getAlumniDirectory,
   exportAlumniCSV,
+  exportAlumniPDF,
+  generateDashboardReport,
   getProgrammes,
   getGraduationYears
 } from "../controllers/apiKeyController.js";
@@ -65,12 +67,15 @@ router.get("/analytics/certification-trends", trackUsage("read:analytics"),getCe
 
 router.get("/analytics/programme-distribution", trackUsage("read:analytics"), getProgrammeDistribution);
 
+router.get("/analytics/generate-report", trackUsage("read:analytics"), generateDashboardReport);
 
 // DASHBOARD (DIRECTORY)
 
 router.get("/directory", trackUsage("read:alumni"), getAlumniDirectory);
 
-router.get("/directory/export", trackUsage("read:alumni"), exportAlumniCSV);
+router.get("/directory/export/csv", trackUsage("read:alumni"), exportAlumniCSV);
+
+router.get("/directory/export/pdf", trackUsage("read:alumni"), exportAlumniPDF);
 
 router.get("/directory/options/programmes", trackUsage("read:alumni"), getProgrammes);
 

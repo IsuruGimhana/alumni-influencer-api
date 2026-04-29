@@ -4,11 +4,40 @@ import crypto from "crypto";
 // import { get } from "http";
 import { Op, fn, col, literal } from "sequelize";
 import { Parser } from 'json2csv';
-import PDFDocument from "pdfkit";
 
 /**
  * Generate a new API Key for the ar_app or dashboard client
  */
+// export const generateApiKey = async (req, res) => {
+//   try {
+//     // 1. Secure token generation using crypto
+//     const newKey = crypto.randomBytes(32).toString('hex'); 
+    
+//     // Assign scopes based on the client type (passed in request body)
+//     // Example: clientType could be 'dashboard' or 'ar_app'
+//     let assignedScopes = ["read:alumni_of_day"]; // Default
+//     if (req.user.role === 'dashboard') {
+//         assignedScopes = ["read:alumni", "read:analytics"];
+//     }
+
+//     // 2. Create the key record in the database
+//     const apiKey = await ApiKey.create({
+//       key: newKey,
+//       label: req?.body?.label || "Default Key",
+//       userId: req?.user?.id,
+//       scopes: assignedScopes
+//     });
+
+//     // 3. Respond with 201 Created and the raw key 
+//     res.status(201).json({ 
+//       msg: "API Key generated successfully", 
+//       apiKey: newKey 
+//     });
+//   } catch (err) {
+//     // 4. Proper error handling for database or logic failures 
+//     res.status(500).json({ msg: err.message });
+//   }
+// };
 
 export const generateApiKey = async (req, res) => {
   try {
@@ -159,6 +188,28 @@ export const getAlumnusOfTheDay = async (req, res) => {
  * HELPER: Generates the filter object for Analytics
  * Filters by Degree Title (Programme) and Completion Date (Graduation)
  */
+// const getFilters = (query) => {
+//   const { programme, gradDate } = query;
+//   const filter = {};
+//   if (programme) filter['$Profile.Degrees.title$'] = programme;
+//   // if (gradDate) filter['$Profile.Degrees.completionDate$'] = { [Op.like]: `%${gradDate}%` };
+//   if (gradDate) {
+//     filter['$Profile.Degrees.completionDate$'] = {
+//       [Op.between]: [
+//         `${gradDate}-01-01`,
+//         `${gradDate}-12-31`
+//       ]
+//     };
+//   }
+//   // if (programme) {
+//   //   filter.title = programme;
+//   // }
+//   // if (gradDate) {
+//   //   filter.completionDate = { [Op.like]: `%${gradDate}%` };
+//   // }
+//   console.log("Generated filters for analytics:", filter);
+//   return filter;
+// };
 const getFilters = (query, base = '') => {
   const { programme, gradDate } = query;
   const filter = {};
@@ -392,128 +443,104 @@ export const getProgrammeDistribution = async (req, res) => {
   }
 };
 
-export const generateDashboardReport = async (req, res) => {
-  try {
-    const filters = getFilters(req.query);
+/**
+ * Get Alumni Directory (Filtered List)
+ */
+// export const getAlumniDirectory = async (req, res) => {
+//   try {
+//     const alumni = await User.findAll({
+//       attributes: { exclude: ["password"] },
+//       where: { 
+//         role: 'alumni',
+//         ...getFilters(req.query)
+//       },
+//       include: [{
+//         model: Profile,
+//         required: true, // Only include users with profiles
+//         // where: getFilters(req.query), // Apply filters to the Profile
+//         // include: [Degree, Certification, License, Course, Work]
+//         // attributes: [], 
+//         include: [
+//           { model: Degree,
+//           // where: getFilters(req.query), // Apply filters to the Degree
+//           // attributes: [], 
+//           }, 
+//           { model: Certification, attributes: [] }, 
+//           { model: License, attributes: [] }, 
+//           { model: Course, attributes: [] }, 
+//           { model: Work,
+//           // attributes: [], 
+//           }
+//         ]
+//       }],
+//       // raw: true,
+//       subQuery: false
 
-    const countCertId = fn('COUNT', fn('DISTINCT', col('Certification.id')));
-    const countWorkId = fn('COUNT', fn('DISTINCT', col('Work.id')));
+//     });
 
-    // -----------------------------
-    // SKILLS GAP
-    // -----------------------------
-    const skills = await Certification.findAll({
-      attributes: ['title', [countCertId, 'count']],
-      include: [{
-        model: Profile,
-        attributes: [],
-        include: [{
-          model: Degree,
-          attributes: [],
-        }]
-      }],
-      where: filters,
-      group: ['Certification.title'],
-      order: [[countCertId, 'DESC']],
-      raw: true,
-      subQuery: false
-    });
+//     // Map the results to a cleaner, flat structure
+//     const formattedAlumni = alumni.map(user => {
+//       const profile = user.Profile || {};
+//       const degree = profile.Degrees?.[0] || {};
+//       const work = profile.Works?.[0] || {};
 
-    // -----------------------------
-    // JOBS
-    // -----------------------------
-    const jobs = await Work.findAll({
-      attributes: ['jobTitle', [countWorkId, 'count']],
-      include: [{
-        model: Profile,
-        attributes: [],
-        include: [{
-          model: Degree,
-          attributes: [],
-        }]
-      }],
-      where: filters,
-      group: ['Work.jobTitle'],
-      order: [[countWorkId, 'DESC']],
-      limit: 5,
-      raw: true,
-      subQuery: false
-    });
+//       return {
+//         id: user.id,
+//         fullName: profile.fullName || "N/A",
+//         email: user.email,
+//         location: profile.city && profile.country ? `${profile.city}, ${profile.country}` : "N/A",
+//         programme: degree.title || "N/A",
+//         graduationYear: degree.completionDate ? new Date(degree.completionDate).getFullYear() : "N/A",
+//         currentRole: work.jobTitle || "Unemployed/Private",
+//         company: work.company || "N/A",
+//         profileImage: profile.profileImage || "/uploads/profile-default.jpg"
+//       };
+//     });
+//     res.json(formattedAlumni);
+//   } catch (err) {
+//     res.status(500).json({ msg: "Error fetching directory" });
+//   }
+// };
 
-    // -----------------------------
-    // EMPLOYERS
-    // -----------------------------
-    const employers = await Work.findAll({
-      attributes: ['company', [countWorkId, 'count']],
-      include: [{
-        model: Profile,
-        attributes: [],
-        include: [{
-          model: Degree,
-          attributes: [],
-        }]
-      }],
-      where: filters,
-      group: ['Work.company'],
-      order: [[countWorkId, 'DESC']],
-      limit: 5,
-      raw: true,
-      subQuery: false
-    });
+/**
+ * Export Alumni Directory to CSV
+ */
+// export const exportAlumniCSV = async (req, res) => {
+//   try {
+//     const alumni = await User.findAll({
+//       where: { 
+//         role: 'alumni',
+//         ...getFilters(req.query)
+//       },
+//       include: [{
+//         model: Profile,
+//         required: true,
+//         include: [Degree, Work]
+//       }],
+//       subQuery: false
+//     });
 
-    // -----------------------------
-    // PDF GENERATION
-    // -----------------------------
-    const doc = new PDFDocument();
+//     // Flatten data for CSV rows
+//     const csvData = alumni.map(a => ({
+//       FirstName: a.firstName,
+//       LastName: a.lastName,
+//       Email: a.email,
+//       Programme: a.Profile?.Degrees?.[0]?.title || 'N/A',
+//       GraduationYear: a.Profile?.Degrees?.[0]?.year || 'N/A',
+//       CurrentRole: a.Profile?.Work?.[0]?.jobTitle || 'N/A',
+//       Industry: a.Profile?.Work?.[0]?.industry || 'N/A'
+//     }));
 
-    res.setHeader("Content-Type", "application/pdf");
-    res.setHeader(
-      "Content-Disposition",
-      "attachment; filename=dashboard_report.pdf"
-    );
+//     const json2csvParser = new Parser();
+//     const csv = json2csvParser.parse(csvData);
 
-    doc.pipe(res);
-
-    doc.fontSize(18).text("Alumni Intelligence Report", { align: "center" });
-    doc.moveDown();
-
-    // Filters info (IMPORTANT UX)
-    doc.fontSize(10).text(
-      `Filters: Programme=${req.query.programme || "All"} | Year=${req.query.gradDate || "All"}`
-    );
-    doc.moveDown();
-
-    // Skills
-    doc.fontSize(14).text("Top Skills Gap");
-    skills.slice(0, 5).forEach(s =>
-      doc.text(`- ${s.title}: ${s.count}`)
-    );
-
-    doc.moveDown();
-
-    // Jobs
-    doc.text("Top Job Roles");
-    jobs.forEach(j =>
-      doc.text(`- ${j.jobTitle}: ${j.count}`)
-    );
-
-    doc.moveDown();
-
-    // Employers
-    doc.text("Top Employers");
-    employers.forEach(e =>
-      doc.text(`- ${e.company}: ${e.count}`)
-    );
-
-    doc.end();
-
-  } catch (err) {
-    res.status(500).json({
-      msg: "Failed to generate report",
-      error: err.message,
-    });
-  }
-};
+//     res.header('Content-Type', 'text/csv');
+//     res.attachment('alumni_directory_export.csv');
+//     return res.send(csv);
+//   } catch (err) {
+//     res.status(500).json({ msg: "Export failed", error: err.message });
+//   }
+// };
 
 export const formatAlumni = (user) => {
   const profile = user.Profile || {};
@@ -526,8 +553,6 @@ export const formatAlumni = (user) => {
         new Date(b.startDate || 0) - new Date(a.startDate || 0)
     )[0] ||
     {};
-
-  const baseUrl = process.env.BASE_URL; // e.g. http://localhost:5050
 
   return {
     id: user.id,
@@ -549,7 +574,7 @@ export const formatAlumni = (user) => {
     company: work.company || "N/A",
 
     profileImage:
-      profile.profileImage || `${baseUrl}/uploads/profile-default.jpg`
+      profile.profileImage || "/uploads/profile-default.jpg",
   };
 };
 
@@ -621,62 +646,6 @@ export const exportAlumniCSV = async (req, res) => {
     });
   }
 };
-
-export const exportAlumniPDF = async (req, res) => {
-  console.log("Received query parameters for PDF export:", req.query);
-  try {
-    const alumni = await User.findAll({
-      where: {
-        role: "alumni",
-        ...getFilters(req.query),
-      },
-      include: [
-        {
-          model: Profile,
-          required: true,
-          include: [Degree, Work],
-        },
-      ],
-      subQuery: false,
-    });
-
-    const doc = new PDFDocument({ margin: 30, size: "A4" });
-
-    res.setHeader("Content-Type", "application/pdf");
-    res.setHeader(
-      "Content-Disposition",
-      "attachment; filename=alumni_directory.pdf"
-    );
-
-    doc.pipe(res);
-
-    doc.fontSize(18).text("Alumni Directory Export", { align: "center" });
-    doc.moveDown();
-
-    // Filters info
-    doc.fontSize(10).text(
-      `Filters: Programme=${req.query.programme || "All"} | Year=${req.query.gradDate || "All"}`
-    );
-    doc.moveDown();
-
-    alumni.forEach((u, idx) => {
-      const a = formatAlumni(u);
-
-      doc.fontSize(12).text(`${idx + 1}. ${a.fullName}`, { continued: true }).fontSize(10).text(` (${a.email})`);
-      doc.text(`   Location: ${a.location}`);
-      doc.text(`   Programme: ${a.programme} (${a.graduationYear})`);
-      doc.text(`   Current Role: ${a.currentRole} at ${a.company}`);
-      doc.moveDown();
-    });
-
-    doc.end();
-  } catch (err) {
-    res.status(500).json({
-      msg: "PDF Export failed",
-      error: err.message,
-    });
-  }
-}
 
 export const getProgrammes = async (req, res) => {
   const programmes = await Degree.findAll({

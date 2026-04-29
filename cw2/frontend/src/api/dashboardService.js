@@ -26,11 +26,26 @@ export const getDirectory = (params) =>
 
 // Export the Alumni Directory as a CSV file
 export const exportAlumniCSV = (params) =>
-  dashboardApi.get("/keys/directory/export", {
+  dashboardApi.get("/keys/directory/export/csv", {
     params,
     responseType: 'blob' // Important for handling file downloads
   });
 
+// Export the Alumni Directory as a PDF file
+export const exportAlumniPDF = (params) =>
+  dashboardApi.get("/keys/directory/export/pdf", {
+    params,
+    responseType: 'blob' // Important for handling file downloads
+  });
+
+// Generate a dashboard report
+export const generateReport = (params) =>
+  dashboardApi.get("/keys/analytics/generate-report", {
+    params,
+    responseType: 'blob' // Assuming the report is returned as a file (PDF/Excel)
+  });
+
+  
 // Filter options
 
 // Get all available programmes for dropdown
