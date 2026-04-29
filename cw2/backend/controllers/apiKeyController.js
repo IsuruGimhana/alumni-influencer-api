@@ -361,23 +361,25 @@ export const getProgrammeDistribution = async (req, res) => {
 
     const data = await User.findAll({
       attributes: [
-        // 'Profile->Degrees.title' is used since it's a nested attribute
-        [col('Profile->Degrees.title'), 'programme'],
+        // Use the dot notation that matches the include hierarchy
+        [col('Profile.Degrees.title'), 'programme'],
         [countUserId, 'count']
       ],
       include: [{
         model: Profile,
         attributes: [],
+        required: true,
         include: [{
           model: Degree,
-          attributes: []
+          attributes: [],
+          required: true,
         }]
       }],
       where: {
         role: 'alumni',
-        ...getFilters(req.query, 'Profile') // uses $Profile.Degrees$
+        ...getFilters(req.query) 
       },
-      group: ['Profile->Degrees.title'],
+      group: [col('Profile.Degrees.title')],
       order: [[countUserId, 'DESC']],
       raw: true,
       subQuery: false
@@ -385,10 +387,7 @@ export const getProgrammeDistribution = async (req, res) => {
 
     res.json(data);
   } catch (err) {
-    res.status(500).json({
-      msg: "Error fetching programme distribution",
-      error: err.message
-    });
+    res.status(500).json({ error: err.message });
   }
 };
 
@@ -514,6 +513,7 @@ export const generateDashboardReport = async (req, res) => {
     });
   }
 };
+
 
 export const formatAlumni = (user) => {
   const profile = user.Profile || {};

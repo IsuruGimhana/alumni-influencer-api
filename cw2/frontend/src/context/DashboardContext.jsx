@@ -107,6 +107,14 @@ export const DashboardProvider = ({ children }) => {
   // INIT
   // -----------------------------
   useEffect(() => {
+  console.log("skillsGap:", skillsGap);
+  console.log("jobTrends:", jobTrends);
+  console.log("employers:", employers);
+  console.log("geo:", geo);
+  console.log("certificationTrends:", certificationTrends);
+  console.log("programmeDistribution:", programmeDistribution);
+  }, [skillsGap, jobTrends, geo, employers, certificationTrends, programmeDistribution]);
+  useEffect(() => {
     fetchOptions();
   }, [fetchOptions]);
 
