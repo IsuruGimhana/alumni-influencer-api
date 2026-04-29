@@ -179,9 +179,32 @@ export const DashboardProvider = ({ children }) => {
     }
   };
 
-  const generateReport = async () => {
+  // const generateReport = async () => {
+  //   try {
+  //     const res = await dashboardService.generateReport(filters);
+
+  //     const blob = new Blob([res.data], { type: "application/pdf" });
+  //     const url = window.URL.createObjectURL(blob);
+
+  //     const link = document.createElement("a");
+  //     link.href = url;
+  //     link.download = "dashboard_report.pdf";
+
+  //     document.body.appendChild(link);
+  //     link.click();
+  //     link.remove();
+
+  //     window.URL.revokeObjectURL(url);
+  //   } catch (err) {
+  //     console.error("Report generation failed:", err);
+  //   }
+  // };
+  const generateReport = async (charts) => {
     try {
-      const res = await dashboardService.generateReport(filters);
+      const res = await dashboardService.generateReport({
+        filters,
+        charts
+      });
 
       const blob = new Blob([res.data], { type: "application/pdf" });
       const url = window.URL.createObjectURL(blob);

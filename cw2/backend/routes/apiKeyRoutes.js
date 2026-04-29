@@ -67,7 +67,7 @@ router.get("/analytics/certification-trends", trackUsage("read:analytics"),getCe
 
 router.get("/analytics/programme-distribution", trackUsage("read:analytics"), getProgrammeDistribution);
 
-router.get("/analytics/generate-report", trackUsage("read:analytics"), generateDashboardReport);
+router.post("/analytics/generate-report", trackUsage("read:analytics"), generateDashboardReport);
 
 // DASHBOARD (DIRECTORY)
 

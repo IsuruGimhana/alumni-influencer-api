@@ -24,6 +24,15 @@ import { FilterDropdown } from "../../components/common/FilterDropdown";
 import { toPng } from "html-to-image";
 import { Download, BarChart3 } from "lucide-react";
 
+export const EmptyState = ({ text }) => {
+  return (
+    <div className="h-full flex flex-col items-center justify-center text-slate-400">
+      <BarChart3 size={28} />
+      <p className="text-sm mt-2 text-center">{text}</p>
+    </div>
+  );
+};
+
 export default function DashboardHomePage() {
   const {
     skillsGap,
@@ -69,13 +78,38 @@ export default function DashboardHomePage() {
     link.click();
   };
 
+  const getChartImages = async () => {
+    const images = await Promise.all([
+      toPng(skillsRef.current),
+      toPng(certRef.current),
+      toPng(jobRef.current),
+      toPng(geoRef.current),
+      toPng(empRef.current),
+      toPng(progRef.current),
+    ]);
+
+    return {
+      skills: images[0],
+      cert: images[1],
+      jobs: images[2],
+      geo: images[3],
+      emp: images[4],
+      prog: images[5],
+    };
+  };
+
+  const handleReport = async () => {
+    const charts = await getChartImages();
+    generateReport(charts);
+  };
+
   // -----------------------------
   // DATA
   // -----------------------------
   const skillsGapData = safe(skillsGap).map(d => ({
     subject: d.title,
     A: toNum(d.count),
-    B: 50
+    B: 30 // curriculum baseline (used a static value for demo, can be dynamic based on actual curriculum data)
   }));
 
   const certData = safe(certificationTrends).map(d => ({
@@ -102,6 +136,13 @@ export default function DashboardHomePage() {
     programme: d.programme,
     count: toNum(d.count)
   }));
+  const hasData = (data) => Array.isArray(data) && data.length > 0;
+  // const EmptyState = ({ text }) => (
+  //   <div className="h-full flex flex-col items-center justify-center text-slate-400">
+  //     <BarChart3 size={28} />
+  //     <p className="text-sm mt-2 text-center">{text}</p>
+  //   </div>
+  // );
 
   const latest = certData.at(-1)?.count || 0;
   const previous = certData[0]?.count || 0;
@@ -140,7 +181,7 @@ export default function DashboardHomePage() {
         </div>
 
         <button
-          onClick={generateReport}
+          onClick={handleReport}
           className="flex items-center gap-2 bg-slate-900 text-white px-4 py-2 rounded-lg hover:bg-slate-800"
         >
           <Download size={18} />
@@ -185,16 +226,38 @@ export default function DashboardHomePage() {
           </div>
 
           <div className="h-64">
-            <ResponsiveContainer>
-              <RadarChart data={skillsGapData}>
-                <PolarGrid />
-                <PolarAngleAxis dataKey="subject" tick={{ fontSize: 10 }} />
-                <Radar dataKey="A" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.6}/>
-                <Radar dataKey="B" stroke="#94a3b8" fill="#94a3b8" fillOpacity={0.3}/>
-                <Tooltip />
-                <Legend />
-              </RadarChart>
-            </ResponsiveContainer>
+            {hasData(skillsGapData) ? (
+              <ResponsiveContainer>
+                <RadarChart data={skillsGapData}>
+                  <PolarGrid />
+                  <PolarAngleAxis dataKey="subject" tick={{ fontSize: 10 }} />
+                  <Radar
+                    name="Alumni Demand"
+                    dataKey="A"
+                    stroke="#3b82f6"
+                    fill="#3b82f6"
+                    fillOpacity={0.6}
+                  />
+
+                  <Radar
+                    name="Curriculum Baseline"
+                    dataKey="B"
+                    stroke="#94a3b8"
+                    fill="#94a3b8"
+                    fillOpacity={0.3}
+                  />
+                  <Tooltip />
+                  <Legend />
+                </RadarChart>
+              </ResponsiveContainer>
+            ) : (
+              <EmptyState text="No skills gap data available" />
+            )}
+          </div>
+            <div className="mt-4 border-t pt-3">
+            <p className="text-xs text-slate-500 leading-relaxed">
+              Compares industry demand for skills with curriculum coverage. Higher gaps indicate areas where the programme may need improvement.
+            </p>
           </div>
         </div>
 
@@ -208,15 +271,24 @@ export default function DashboardHomePage() {
           </div>
 
           <div className="h-64">
-            <ResponsiveContainer>
-              <LineChart data={certData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" tick={{ fontSize: 10 }}/>
-                <YAxis />
-                <Tooltip />
-                <Line dataKey="count" stroke="#10b981" strokeWidth={3}/>
-              </LineChart>
-            </ResponsiveContainer>
+            { hasData(certData) ? (
+              <ResponsiveContainer>
+                <LineChart data={certData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" tick={{ fontSize: 10 }}/>
+                  <YAxis />
+                  <Tooltip />
+                  <Line dataKey="count" stroke="#10b981" strokeWidth={3}/>
+                </LineChart>
+              </ResponsiveContainer>
+            ) : (
+              <EmptyState text="No certification trend data available" />
+            )}
+          </div>
+          <div className="mt-4 border-t pt-3">
+            <p className="text-xs text-slate-500 leading-relaxed">
+              Tracks how certification activity changes over time. Helps identify growing or declining interest in professional certifications.
+            </p>
           </div>
         </div>
 
@@ -230,14 +302,23 @@ export default function DashboardHomePage() {
           </div>
 
           <div className="h-64">
-            <ResponsiveContainer>
-              <BarChart layout="vertical" data={jobData}>
-                <XAxis type="number"/>
-                <YAxis dataKey="jobTitle" type="category" width={140}/>
-                <Tooltip />
-                <Bar dataKey="count" fill="#6366f1"/>
-              </BarChart>
-            </ResponsiveContainer>
+            { hasData(jobData) ? (
+              <ResponsiveContainer>
+                <BarChart layout="vertical" data={jobData}>
+                  <XAxis type="number"/>
+                  <YAxis dataKey="jobTitle" type="category" width={140}/>
+                  <Tooltip />
+                  <Bar dataKey="count" fill="#6366f1"/>
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <EmptyState text="No job trend data available" />
+            )}
+          </div>
+          <div className="mt-4 border-t pt-3">
+            <p className="text-xs text-slate-500 leading-relaxed">
+              Shows the most common job roles held by alumni, helping identify career pathways after graduation.
+            </p>
           </div>
         </div>
 
@@ -251,17 +332,26 @@ export default function DashboardHomePage() {
           </div>
 
           <div className="h-64">
-            <ResponsiveContainer>
-              <PieChart>
-                <Pie data={geoData} dataKey="count" nameKey="city" outerRadius={80}>
-                  {geoData.map((_, i) => (
-                    <Cell key={i} fill={COLORS[i % COLORS.length]}/>
-                  ))}
-                </Pie>
-                <Tooltip />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
+            { hasData(geoData) ? (
+              <ResponsiveContainer>
+                <PieChart>
+                  <Pie data={geoData} dataKey="count" nameKey="city" outerRadius={80}>
+                    {geoData.map((_, i) => (
+                      <Cell key={i} fill={COLORS[i % COLORS.length]}/>
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <EmptyState text="No geographical data available" />
+            )}
+          </div>
+          <div className="mt-4 border-t pt-3">
+            <p className="text-xs text-slate-500 leading-relaxed text-center">
+              Represents the geographical distribution of alumni across cities and regions worldwide.
+            </p>
           </div>
         </div>
 
@@ -275,17 +365,26 @@ export default function DashboardHomePage() {
           </div>
 
           <div className="h-64">
-            <ResponsiveContainer>
-              <PieChart>
-                <Pie data={empData} dataKey="count" nameKey="company" innerRadius={50} outerRadius={80}>
-                  {empData.map((_, i) => (
-                    <Cell key={i} fill={COLORS[i % COLORS.length]}/>
-                  ))}
-                </Pie>
-                <Tooltip />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
+            { hasData(empData) ? (
+              <ResponsiveContainer>
+                <PieChart>
+                  <Pie data={empData} dataKey="count" nameKey="company" innerRadius={50} outerRadius={80}>
+                    {empData.map((_, i) => (
+                      <Cell key={i} fill={COLORS[i % COLORS.length]}/>
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <EmptyState text="No employer data available" />
+            )}
+          </div>
+          <div className="mt-4 border-t pt-3">
+            <p className="text-xs text-slate-500 leading-relaxed text-center">
+              Highlights top companies employing alumni, showing industry placement trends and employer popularity.
+            </p>
           </div>
         </div>
 
@@ -299,14 +398,23 @@ export default function DashboardHomePage() {
           </div>
 
           <div className="h-64">
-            <ResponsiveContainer>
-              <BarChart data={progData}>
-                <XAxis dataKey="programme"/>
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="count" fill="#f59e0b"/>
-              </BarChart>
-            </ResponsiveContainer>
+            { hasData(progData) ? (
+              <ResponsiveContainer>
+                <BarChart data={progData}>
+                  <XAxis dataKey="programme"/>
+                  <YAxis />
+                  <Tooltip />
+                  <Bar dataKey="count" fill="#f59e0b"/>
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <EmptyState text="No programme data available" />
+            )}
+          </div>
+          <div className="mt-4 border-t pt-3">
+            <p className="text-xs text-slate-500 leading-relaxed">
+              Shows how alumni are distributed across academic programmes, helping evaluate programme popularity and demand.
+            </p>
           </div>
         </div>
 

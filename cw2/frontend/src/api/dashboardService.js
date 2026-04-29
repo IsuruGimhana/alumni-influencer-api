@@ -39,11 +39,14 @@ export const exportAlumniPDF = (params) =>
   });
 
 // Generate a dashboard report
-export const generateReport = (params) =>
-  dashboardApi.get("/keys/analytics/generate-report", {
-    params,
-    responseType: 'blob' // Assuming the report is returned as a file (PDF/Excel)
-  });
+export const generateReport = (data) =>
+  dashboardApi.post(
+    "/keys/analytics/generate-report",
+    data,
+    {
+      responseType: "blob",
+    }
+  );
 
   
 // Filter options

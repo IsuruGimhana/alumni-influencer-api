@@ -33,7 +33,9 @@ const swaggerDocument = YAML.load(
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // middleware
-app.use(express.json());
+// app.use(express.json());
+app.use(express.json({ limit: "50mb" })); // Increase the payload limit to 50MB to handle large JSON bodies (e.g., for profile pictures)
+app.use(express.urlencoded({ limit: "50mb", extended: true })); // Also increase the limit for URL-encoded data if needed (e.g., for form submissions with large data)
 app.use(cors({
   origin: process.env.CLIENT_URL,
   credentials: true

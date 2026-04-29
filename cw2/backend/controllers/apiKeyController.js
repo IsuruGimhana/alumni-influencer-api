@@ -391,129 +391,282 @@ export const getProgrammeDistribution = async (req, res) => {
   }
 };
 
+// export const generateDashboardReport = async (req, res) => {
+//   try {
+//     const filters = getFilters(req.query);
+
+//     const countCertId = fn('COUNT', fn('DISTINCT', col('Certification.id')));
+//     const countWorkId = fn('COUNT', fn('DISTINCT', col('Work.id')));
+
+//     // -----------------------------
+//     // SKILLS GAP
+//     // -----------------------------
+//     const skills = await Certification.findAll({
+//       attributes: ['title', [countCertId, 'count']],
+//       include: [{
+//         model: Profile,
+//         attributes: [],
+//         include: [{
+//           model: Degree,
+//           attributes: [],
+//         }]
+//       }],
+//       where: filters,
+//       group: ['Certification.title'],
+//       order: [[countCertId, 'DESC']],
+//       raw: true,
+//       subQuery: false
+//     });
+
+//     // -----------------------------
+//     // JOBS
+//     // -----------------------------
+//     const jobs = await Work.findAll({
+//       attributes: ['jobTitle', [countWorkId, 'count']],
+//       include: [{
+//         model: Profile,
+//         attributes: [],
+//         include: [{
+//           model: Degree,
+//           attributes: [],
+//         }]
+//       }],
+//       where: filters,
+//       group: ['Work.jobTitle'],
+//       order: [[countWorkId, 'DESC']],
+//       limit: 5,
+//       raw: true,
+//       subQuery: false
+//     });
+
+//     // -----------------------------
+//     // EMPLOYERS
+//     // -----------------------------
+//     const employers = await Work.findAll({
+//       attributes: ['company', [countWorkId, 'count']],
+//       include: [{
+//         model: Profile,
+//         attributes: [],
+//         include: [{
+//           model: Degree,
+//           attributes: [],
+//         }]
+//       }],
+//       where: filters,
+//       group: ['Work.company'],
+//       order: [[countWorkId, 'DESC']],
+//       limit: 5,
+//       raw: true,
+//       subQuery: false
+//     });
+
+//     // -----------------------------
+//     // PDF GENERATION
+//     // -----------------------------
+//     const doc = new PDFDocument();
+
+//     res.setHeader("Content-Type", "application/pdf");
+//     res.setHeader(
+//       "Content-Disposition",
+//       "attachment; filename=dashboard_report.pdf"
+//     );
+
+//     doc.pipe(res);
+
+//     doc.fontSize(18).text("Alumni Intelligence Report", { align: "center" });
+//     doc.moveDown();
+
+//     // Filters info (IMPORTANT UX)
+//     doc.fontSize(10).text(
+//       `Filters: Programme=${req.query.programme || "All"} | Year=${req.query.gradDate || "All"}`
+//     );
+//     doc.moveDown();
+
+//     // Skills
+//     doc.fontSize(14).text("Top Skills Gap");
+//     skills.slice(0, 5).forEach(s =>
+//       doc.text(`- ${s.title}: ${s.count}`)
+//     );
+
+//     doc.moveDown();
+
+//     // Jobs
+//     doc.text("Top Job Roles");
+//     jobs.forEach(j =>
+//       doc.text(`- ${j.jobTitle}: ${j.count}`)
+//     );
+
+//     doc.moveDown();
+
+//     // Employers
+//     doc.text("Top Employers");
+//     employers.forEach(e =>
+//       doc.text(`- ${e.company}: ${e.count}`)
+//     );
+
+//     doc.end();
+
+//   } catch (err) {
+//     res.status(500).json({
+//       msg: "Failed to generate report",
+//       error: err.message,
+//     });
+//   }
+// };
+
+
 export const generateDashboardReport = async (req, res) => {
   try {
-    const filters = getFilters(req.query);
+    const { charts, filters } = req.body;
 
-    const countCertId = fn('COUNT', fn('DISTINCT', col('Certification.id')));
-    const countWorkId = fn('COUNT', fn('DISTINCT', col('Work.id')));
+    const COLORS = {
+      primary: "#2563eb",
+      secondary: "#64748b",
+      background: "#f8fafc",
+      text: "#1e293b",
+      cardBg: "#ffffff",
+      border: "#e2e8f0"
+    };
 
-    // -----------------------------
-    // SKILLS GAP
-    // -----------------------------
-    const skills = await Certification.findAll({
-      attributes: ['title', [countCertId, 'count']],
-      include: [{
-        model: Profile,
-        attributes: [],
-        include: [{
-          model: Degree,
-          attributes: [],
-        }]
-      }],
-      where: filters,
-      group: ['Certification.title'],
-      order: [[countCertId, 'DESC']],
-      raw: true,
-      subQuery: false
+    const doc = new PDFDocument({
+      margin: 40,
+      size: "A4",
+      bufferPages: true,
     });
-
-    // -----------------------------
-    // JOBS
-    // -----------------------------
-    const jobs = await Work.findAll({
-      attributes: ['jobTitle', [countWorkId, 'count']],
-      include: [{
-        model: Profile,
-        attributes: [],
-        include: [{
-          model: Degree,
-          attributes: [],
-        }]
-      }],
-      where: filters,
-      group: ['Work.jobTitle'],
-      order: [[countWorkId, 'DESC']],
-      limit: 5,
-      raw: true,
-      subQuery: false
-    });
-
-    // -----------------------------
-    // EMPLOYERS
-    // -----------------------------
-    const employers = await Work.findAll({
-      attributes: ['company', [countWorkId, 'count']],
-      include: [{
-        model: Profile,
-        attributes: [],
-        include: [{
-          model: Degree,
-          attributes: [],
-        }]
-      }],
-      where: filters,
-      group: ['Work.company'],
-      order: [[countWorkId, 'DESC']],
-      limit: 5,
-      raw: true,
-      subQuery: false
-    });
-
-    // -----------------------------
-    // PDF GENERATION
-    // -----------------------------
-    const doc = new PDFDocument();
 
     res.setHeader("Content-Type", "application/pdf");
-    res.setHeader(
-      "Content-Disposition",
-      "attachment; filename=dashboard_report.pdf"
-    );
-
+    res.setHeader("Content-Disposition", "attachment; filename=Alumni_Report.pdf");
     doc.pipe(res);
 
-    doc.fontSize(18).text("Alumni Intelligence Report", { align: "center" });
-    doc.moveDown();
+    // ================= HELPER: CARD =================
+    const addChartCard = (title, image, x, y, width, height) => {
+      // Card background (no shadow support in PDFKit)
+      doc
+        .roundedRect(x, y, width, height, 8)
+        .fillColor(COLORS.cardBg)
+        .fill();
 
-    // Filters info (IMPORTANT UX)
-    doc.fontSize(10).text(
-      `Filters: Programme=${req.query.programme || "All"} | Year=${req.query.gradDate || "All"}`
+      // Border (optional for modern look)
+      doc
+        .roundedRect(x, y, width, height, 8)
+        .lineWidth(0.5)
+        .strokeColor(COLORS.border)
+        .stroke();
+
+      // Title
+      doc
+        .fillColor(COLORS.primary)
+        .fontSize(11)
+        .text(title.toUpperCase(), x + 15, y + 15, {
+          characterSpacing: 1,
+          width: width - 30
+        });
+
+      // Image
+      if (image) {
+        doc.image(image, x + 10, y + 40, {
+          fit: [width - 20, height - 60],
+          align: "center",
+          valign: "center"
+        });
+      } else {
+        doc
+          .fillColor(COLORS.secondary)
+          .fontSize(10)
+          .text("No data available", x, y + height / 2, {
+            width,
+            align: "center"
+          });
+      }
+    };
+
+    // ================= HEADER =================
+    doc.rect(0, 0, doc.page.width, 100).fillColor(COLORS.primary).fill();
+
+    doc
+      .fillColor("#ffffff")
+      .fontSize(22)
+      .text("ALUMNI ANALYTICS", 40, 35);
+
+    doc
+      .fontSize(10)
+      .text(`GENERATED: ${new Date().toLocaleDateString()}`, 40, 65);
+
+    // Filter box
+    doc
+      .roundedRect(380, 35, 170, 45, 5)
+      .fillColor("#ffffff")
+      .fill();
+
+    doc
+      .fillColor(COLORS.primary)
+      .fontSize(8)
+      .text(`PROGRAMME: ${filters?.programme || "All"}`, 390, 42)
+      .text(`YEAR: ${filters?.gradDate || "All"}`, 390, 55);
+
+    // ================= GRID =================
+    const cardWidth = 250;
+    const cardHeight = 220;
+    const gutter = 20;
+
+    const startY = 120;
+
+    // Row 1
+    addChartCard("Skills Gap", charts?.skills, 40, startY, cardWidth, cardHeight);
+    addChartCard("Cert Trends", charts?.cert, 40 + cardWidth + gutter, startY, cardWidth, cardHeight);
+
+    // Row 2
+    addChartCard("Job Trends", charts?.jobs, 40, startY + cardHeight + gutter, cardWidth, cardHeight);
+    addChartCard(
+      "Geography",
+      charts?.geo,
+      40 + cardWidth + gutter,
+      startY + cardHeight + gutter,
+      cardWidth,
+      cardHeight
     );
-    doc.moveDown();
 
-    // Skills
-    doc.fontSize(14).text("Top Skills Gap");
-    skills.slice(0, 5).forEach(s =>
-      doc.text(`- ${s.title}: ${s.count}`)
+    // Row 3
+    addChartCard(
+      "Top Employers",
+      charts?.emp,
+      40,
+      startY + (cardHeight + gutter) * 2,
+      cardWidth,
+      cardHeight
     );
 
-    doc.moveDown();
-
-    // Jobs
-    doc.text("Top Job Roles");
-    jobs.forEach(j =>
-      doc.text(`- ${j.jobTitle}: ${j.count}`)
+    addChartCard(
+      "Distribution",
+      charts?.prog,
+      40 + cardWidth + gutter,
+      startY + (cardHeight + gutter) * 2,
+      cardWidth,
+      cardHeight
     );
 
-    doc.moveDown();
+    // ================= FOOTER =================
+    const range = doc.bufferedPageRange();
+    for (let i = range.start; i < range.start + range.count; i++) {
+      doc.switchToPage(i);
 
-    // Employers
-    doc.text("Top Employers");
-    employers.forEach(e =>
-      doc.text(`- ${e.company}: ${e.count}`)
-    );
+      doc
+        .fillColor(COLORS.secondary)
+        .fontSize(8)
+        .text(
+          `Page ${i + 1} of ${range.count} - Confidential Alumni Report`,
+          40,
+          doc.page.height - 30,
+          { align: "center", width: doc.page.width - 80 }
+        );
+    }
 
     doc.end();
-
   } catch (err) {
-    res.status(500).json({
-      msg: "Failed to generate report",
-      error: err.message,
-    });
+    console.error(err);
+    res.status(500).send("Error generating PDF");
   }
 };
-
 
 export const formatAlumni = (user) => {
   const profile = user.Profile || {};
@@ -612,7 +765,7 @@ export const exportAlumniCSV = async (req, res) => {
     const csv = new Parser().parse(csvData);
 
     res.header("Content-Type", "text/csv");
-    res.attachment("alumni_directory_export.csv");
+    res.attachment("alumni_directory.csv");
     res.send(csv);
   } catch (err) {
     res.status(500).json({
@@ -650,7 +803,7 @@ export const exportAlumniPDF = async (req, res) => {
 
     doc.pipe(res);
 
-    doc.fontSize(18).text("Alumni Directory Export", { align: "center" });
+    doc.fontSize(18).text("Alumni Directory", { align: "center" });
     doc.moveDown();
 
     // Filters info
