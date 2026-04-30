@@ -47,12 +47,33 @@ app.use(cors({
   credentials: true
 }));
 
+
 /**
  * Security middleware (Helmet)
- * Enables safer HTTP headers and cross-origin resource policy
+ *
+ * Helmet helps secure the Express app by setting various HTTP headers.
+ * These headers protect the application from common web vulnerabilities
+ * such as Cross-Site Scripting (XSS), clickjacking, and code injection attacks.
+ *
+ * Content Security Policy (CSP):
+ * - defaultSrc: Only allows resources from the same origin (self)
+ * - imgSrc: Allows images from self and base64 encoded images
+ * - scriptSrc: Only allows JavaScript from the same origin
+ * - styleSrc: Allows styles from self and inline styles (required for some UI libraries)
+ *
+ * Cross-Origin Resource Policy:
+ * - Allows resources to be accessed from other origins when needed
  */
 app.use(
   helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        imgSrc: ["'self'", "data:"],
+        scriptSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+      },
+    },
     crossOriginResourcePolicy: { policy: "cross-origin" }
   })
 );

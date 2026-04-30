@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useAuth } from "./hooks/useAuth";
+import { useInitializeCsrf } from "./hooks/useInitializeCsrf";
 import Loader from "./components/common/Loader";
 
 // Auth
@@ -33,6 +34,7 @@ import AlumniDirectoryPage from "./pages/dashboard/AlumniDirectoryPage";
 import Unauthorized from "./pages/auth/Unauthorized"; 
 
 function App() {
+  useInitializeCsrf();
   const { authLoading } = useAuth();
   if (authLoading) return <Loader />;
 

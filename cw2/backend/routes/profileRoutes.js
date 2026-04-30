@@ -47,6 +47,7 @@ import {
   idParamValidation,
   imageUploadValidation,
 } from "../middleware/validator.js";
+import { verifyCSRF } from "../middleware/csrfMiddleware.js";
 
 const router = express.Router();
 
@@ -55,29 +56,29 @@ const router = express.Router();
 
 // --- Base Profile ---
 router.get("/me", protect, authorize("alumni"), getMyProfile);
-router.post("/", protect, authorize("alumni"), profileCreateValidation, createProfile);
-router.put("/", protect, authorize("alumni"), profileUpdateValidation, updateProfile);
-router.post("/me/image", protect, authorize("alumni"), upload.single("profileImage"), imageUploadValidation, uploadImage);
+router.post("/", verifyCSRF, protect, authorize("alumni"), profileCreateValidation, createProfile);
+router.put("/", verifyCSRF, protect, authorize("alumni"), profileUpdateValidation, updateProfile);
+router.post("/me/image", verifyCSRF, protect, authorize("alumni"), upload.single("profileImage"), imageUploadValidation, uploadImage);
 
 // --- Sub-Resources of Profile ---
-router.post("/degrees", protect, authorize("alumni"), degreeCreateValidation, addDegree);
-router.put("/degrees/:id", protect, authorize("alumni"), idParamValidation, degreeUpdateValidation, updateDegree);
-router.delete("/degrees/:id", protect, authorize("alumni"), idParamValidation, deleteDegree);
+router.post("/degrees", verifyCSRF, protect, authorize("alumni"), degreeCreateValidation, addDegree);
+router.put("/degrees/:id", verifyCSRF, protect, authorize("alumni"), idParamValidation, degreeUpdateValidation, updateDegree);
+router.delete("/degrees/:id", verifyCSRF, protect, authorize("alumni"), idParamValidation, deleteDegree);
 
-router.post("/certifications", protect, authorize("alumni"), certificationCreateValidation, addCertification);
-router.put("/certifications/:id", protect, authorize("alumni"), idParamValidation, certificationUpdateValidation, updateCertification);
-router.delete("/certifications/:id", protect, authorize("alumni"), idParamValidation, deleteCertification);
+router.post("/certifications", verifyCSRF, protect, authorize("alumni"), certificationCreateValidation, addCertification);
+router.put("/certifications/:id", verifyCSRF, protect, authorize("alumni"), idParamValidation, certificationUpdateValidation, updateCertification);
+router.delete("/certifications/:id", verifyCSRF, protect, authorize("alumni"), idParamValidation, deleteCertification);
 
-router.post("/experiences", protect, authorize("alumni"), workCreateValidation, addWork);
-router.put("/experiences/:id", protect, authorize("alumni"), idParamValidation, workUpdateValidation, updateWork);
-router.delete("/experiences/:id", protect, authorize("alumni"), idParamValidation, deleteWork);
+router.post("/experiences", verifyCSRF, protect, authorize("alumni"), workCreateValidation, addWork);
+router.put("/experiences/:id", verifyCSRF, protect, authorize("alumni"), idParamValidation, workUpdateValidation, updateWork);
+router.delete("/experiences/:id", verifyCSRF, protect, authorize("alumni"), idParamValidation, deleteWork);
 
-router.post("/licenses", protect, authorize("alumni"), licenseCreateValidation, addLicense);
-router.put("/licenses/:id", protect, authorize("alumni"), idParamValidation, licenseUpdateValidation, updateLicense);
-router.delete("/licenses/:id", protect, authorize("alumni"), idParamValidation, deleteLicense);
+router.post("/licenses", verifyCSRF, protect, authorize("alumni"), licenseCreateValidation, addLicense);
+router.put("/licenses/:id", verifyCSRF, protect, authorize("alumni"), idParamValidation, licenseUpdateValidation, updateLicense);
+router.delete("/licenses/:id", verifyCSRF, protect, authorize("alumni"), idParamValidation, deleteLicense);
 
-router.post("/courses", protect, authorize("alumni"), courseCreateValidation, addCourse);
-router.put("/courses/:id", protect, authorize("alumni"), idParamValidation, courseUpdateValidation, updateCourse);
-router.delete("/courses/:id", protect, authorize("alumni"), idParamValidation, deleteCourse);
+router.post("/courses", verifyCSRF, protect, authorize("alumni"), courseCreateValidation, addCourse);
+router.put("/courses/:id", verifyCSRF, protect, authorize("alumni"), idParamValidation, courseUpdateValidation, updateCourse);
+router.delete("/courses/:id", verifyCSRF, protect, authorize("alumni"), idParamValidation, deleteCourse);
 
 export default router;

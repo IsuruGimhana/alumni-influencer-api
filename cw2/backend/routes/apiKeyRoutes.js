@@ -4,6 +4,7 @@ const router = express.Router();
 import trackUsage from "../middleware/apiKeyMiddleware.js";
 import protect from "../middleware/authMiddleware.js";
 import authorize from "../middleware/authorize.js";
+import { verifyCSRF } from "../middleware/csrfMiddleware.js";
 
 import {
   generateApiKey,
@@ -34,13 +35,13 @@ import {
 // DEVELOPER (API MANAGEMENT)
 
 // Create API Key
-router.post("/", protect, authorize("developer"), apiKeyGenerationValidation, generateApiKey);
+router.post("/", verifyCSRF, protect, authorize("developer"), apiKeyGenerationValidation, generateApiKey);
 
 // List API Keys
 router.get("/me", protect, authorize("developer"), listApiKeys);
 
 // Revoke API Key
-router.delete("/:id", protect, authorize("developer"), idParamValidation, revokeApiKey);
+router.delete("/:id", verifyCSRF, protect, authorize("developer"), idParamValidation, revokeApiKey);
 
 // Get API Key Stats
 router.get("/:id/stats", protect, authorize("developer"), idParamValidation, getKeyStats);

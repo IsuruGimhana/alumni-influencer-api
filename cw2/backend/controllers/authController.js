@@ -28,6 +28,28 @@ export const getMe = async (req, res) => {
 };
 
 /**
+ * Get CSRF Token
+ * 
+ * Generates a secure CSRF token, sets it in a cookie, and returns it in the response.
+ *
+ * Logic:
+ * - Generate a random 32-byte token using crypto.
+ * - Set the token in a cookie named "XSRF-TOKEN"
+ */
+export const getCsrfToken = (req, res) => {
+  const csrfToken = crypto.randomBytes(32).toString("hex");
+
+  res.cookie("XSRF-TOKEN", csrfToken, {
+    httpOnly: false,
+    secure: process.env.NODE_ENV === "production",//false for development, true for production (HTTPS)
+    sameSite: "lax",
+    path: "/",
+  });
+
+  res.status(200).json({ csrfToken });
+};
+
+/**
  * User Registration
  *
  * Creates a new user account with email verification and secure password storage.
@@ -149,8 +171,7 @@ export const login = async (req, res) => {
     // Set cookie
     res.cookie("token", token, {
       httpOnly: true,
-      secure: false, // set true in production (HTTPS)
-      // sameSite: "strict",
+      secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
       maxAge: 24 * 60 * 60 * 1000, // 1 day
     });
