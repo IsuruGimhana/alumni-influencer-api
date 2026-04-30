@@ -1,6 +1,18 @@
 import { body, validationResult, param } from 'express-validator';
 
-// Standardized helper to catch and return validation errors
+/**
+ * Validation Layer (Express Validator)
+ *
+ * Handles request validation for all API routes including authentication,
+ * profile management, analytics inputs, and file uploads.
+ *
+ * Logic:
+ * - Centralized error handler formats validation errors consistently.
+ * - Defines reusable validation rules for each domain (auth, profile, etc.).
+ * - Enforces data integrity using field-level constraints.
+ * - Sanitizes and normalizes inputs where necessary.
+ * - Protects against invalid or malformed API requests before reaching controllers.
+ */
 export const validate = (req, res, next) => {
   const errors = validationResult(req);
   if (errors.isEmpty()) return next();
@@ -12,7 +24,7 @@ export const validate = (req, res, next) => {
 
 /** 
  * AUTHENTICATION ROUTES VALIDATION
- * */ 
+ */ 
 
 // Email Validation
 export const emailValidation = [
@@ -258,7 +270,7 @@ export const courseUpdateValidation = [
 /**
  * ID PARAMETER VALIDATION
  * Used for all PUT and DELETE routes
- * Since your models use DataTypes.UUIDV4, we must validate for UUID format.
+ * Since the models use DataTypes.UUIDV4, we must validate for UUID format.
  */
 export const idParamValidation = [
   param('id')
@@ -268,13 +280,12 @@ export const idParamValidation = [
 ];
 
 /**
- * 7. IMAGE UPLOAD VALIDATION
+ * IMAGE UPLOAD VALIDATION
  * Validates that a file was uploaded and is an image
  */
 export const imageUploadValidation = (req, res, next) => {
-  // console.log("file:", req.file);
-  // console.log("body:", req.body);
-  // 1. Check if file exists (Multer puts it in req.file)
+
+  // 1. Check if file exists
   if (!req.file) {
     return res.status(400).json({ msg: "Please select an image to upload." });
   }
@@ -310,14 +321,6 @@ export const bidValidation = [
 /**
  * API KEY ROUTES VALIDATION
  */
-// API Key Generation Validation
-// export const apiKeyGenerationValidation = [
-//   body('label')
-//     .optional({ checkFalsy: true }) // Allow it to be empty, default will be set in controller
-//     .trim()
-//     .isLength({ max: 50 }).withMessage('Label must be under 50 characters'),
-//   validate
-// ];
 export const apiKeyGenerationValidation = [
   // Validate client type
   body("clientType")

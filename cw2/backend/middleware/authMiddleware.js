@@ -2,6 +2,18 @@ import jwt from "jsonwebtoken";
 import db from "../models/index.js";
 const { User, Profile } = db;
 
+/**
+ * Authentication Middleware (Protect)
+ *
+ * Secures private routes by validating JWT stored in cookies.
+ *
+ * Logic:
+ * - Extract JWT token from HTTP-only cookie.
+ * - Verify token using JWT secret.
+ * - Fetch user from database using decoded ID.
+ * - Attach user to request object for downstream access.
+ * - Conditionally load Profile data only for alumni users.
+ */
 const protect = async (req, res, next) => {
   try {
     // Get token from cookies
@@ -13,12 +25,6 @@ const protect = async (req, res, next) => {
 
     // Verify token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-    // Get user from DB
-    // const user = await User.findByPk(decoded.id, {
-    //   attributes: { exclude: ["password"] },
-    //   include: [{ model: Profile }] // include profile to check sponsorship balance and attendedEvent for bid limits
-    // });
 
     // fetch basic user to check the role, then fetch the profile if it's an alumni
     const user = await User.findByPk(decoded.id, {
@@ -39,9 +45,6 @@ const protect = async (req, res, next) => {
     } else {
       req.user = user;
     }
-
-    // Attach user to request
-    // req.user = user;
 
     next();
   } catch (err) {

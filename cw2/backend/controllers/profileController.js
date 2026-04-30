@@ -1,7 +1,12 @@
 import db from "../models/index.js";
 const { User, Profile, Degree, Certification, License, Course, Work, Bid } = db;
 
-// Get My Profile
+/**
+ * Get My Profile
+ *
+ * Retrieves the authenticated user's full profile with all related data
+ * for dashboard display.
+ */
 export const getMyProfile = async (req, res) => {
   try {
     // We fetch the profile with ALL associated data for the user's dashboard
@@ -24,32 +29,11 @@ export const getMyProfile = async (req, res) => {
   }
 };
 
-// Create / Update Profile
-// export const createOrUpdateProfile = async (req, res) => {
-//   try {
-//     const { fullName, city, country, bio, linkedInUrl, attendedEvent, sponsorshipBalance } = req.body;
-
-//     // USE THE PROFILE ALREADY ATTACHED BY MIDDLEWARE
-//     let profile = req.user.Profile;
-
-//     if (profile) {
-//       // UPDATE
-//       // await profile.update({ fullName, city, country, bio, linkedInUrl, attendedEvent, sponsorshipBalance });
-//       await profile.update(req.body);
-//       return res.status(200).json({ msg: "Profile updated successfully", profile });
-//     } else {
-//       // CREATE
-//       profile = await Profile.create({ 
-//         fullName, city, country, bio, linkedInUrl, attendedEvent, sponsorshipBalance, 
-//         userId: req.user.id 
-//       });
-//       return res.status(201).json({ msg: "Profile created successfully", profile });
-//     }
-
-//   } catch (err) {
-//     res.status(500).json({ msg: err.message });
-//   }
-// };
+/**
+ * Create Profile
+ *
+ * Creates a new user profile with default values and validation checks.
+ */
 export const createProfile = async (req, res) => {
   try {
     const existingProfile = req?.user?.Profile;
@@ -95,6 +79,11 @@ export const createProfile = async (req, res) => {
   }
 };
 
+/**
+ * Update Profile
+ *
+ * Updates existing profile fields while preserving existing data.
+ */
 export const updateProfile = async (req, res) => {
   try {
     const profile = req?.user?.Profile;
@@ -134,7 +123,17 @@ export const updateProfile = async (req, res) => {
   }
 };
 
-// --- Profile Image Upload ---
+/**
+ * Upload Profile Image
+ *
+ * Handles profile image upload and updates stored image path.
+ *
+ * Logic:
+ * - Validate file upload from Multer.
+ * - Ensure user has an existing profile.
+ * - Save uploaded file path to profile.
+ * - Return updated image URL.
+ */
 export const uploadImage = async (req, res) => {
   try {
     // 1. Check if Multer actually processed a file
@@ -168,7 +167,16 @@ export const uploadImage = async (req, res) => {
   }
 };
 
-// --- Helper for Adding Entries ---
+/**
+ * HELPER: Add Entry
+ *
+ * Generic function to add profile-related entries (Degree, Work, etc.).
+ *
+ * Logic:
+ * - Ensure profile exists.
+ * - Attach entry to user's profileId.
+ * - Create record in specified model.
+ */
 const addEntry = async (Model, req, res) => {
   try {
     if (!req.user.Profile) return res.status(404).json({ msg: "Create profile first" });
@@ -179,7 +187,15 @@ const addEntry = async (Model, req, res) => {
   }
 };
 
-// --- Helper for Updating Entries ---
+/**
+ * HELPER: Update Entry
+ *
+ * Generic function to update profile-related entries.
+ *
+ * Logic:
+ * - Find entry by ID and ensure ownership via profileId.
+ * - Update only allowed fields.
+ */
 const updateEntry = async (Model, req, res) => {
   try {
     // We find the entry by its ID AND ensure it belongs to the user's profile
@@ -199,7 +215,15 @@ const updateEntry = async (Model, req, res) => {
   }
 };
 
-// --- Helper for Deleting Entries ---
+/**
+ * HELPER: Delete Entry
+ *
+ * Generic function to delete profile-related entries.
+ *
+ * Logic:
+ * - Validate ownership using profileId.
+ * - Remove entry from database if authorized.
+ */
 const deleteEntry = async (Model, req, res) => {
   try {
     const entry = await Model.findOne({ 
@@ -213,7 +237,9 @@ const deleteEntry = async (Model, req, res) => {
   }
 };
 
-// EXPORTS
+/**
+ * Exported controller functions for each profile-related model using the generic helpers
+ */
 export const addDegree = (req, res) => addEntry(Degree, req, res);
 export const updateDegree = (req, res) => updateEntry(Degree, req, res);
 export const deleteDegree = (req, res) => deleteEntry(Degree, req, res);
@@ -233,34 +259,3 @@ export const deleteLicense = (req, res) => deleteEntry(License, req, res);
 export const addCourse = (req, res) => addEntry(Course, req, res);
 export const updateCourse = (req, res) => updateEntry(Course, req, res);
 export const deleteCourse = (req, res) => deleteEntry(Course, req, res);
-
-// // Get Alumnus of the Day Api
-// export const getAlumnusOfTheDay = async (req, res) => {
-//   try {
-//     const today = new Date().toLocaleDateString("en-CA"); // YYYY-MM-DD format
-    
-//     // Find today's winner
-//     const winningBid = await Bid.findOne({
-//       where: { bidDate: today, isWinner: true },
-//       include: [{
-//         model: User,
-//         include: [{
-//           model: Profile,
-//           include: [Degree, Certification, License, Course, Work]
-//         }]
-//       }]
-//     });
-
-//     if (!winningBid) return res.status(404).json({ msg: "No featured Alumnus today." });
-
-//     // Get profile
-//     const profile = winningBid.User.Profile;
-//     const profileData = profile.toJSON();
-
-//     if (!profileData.profileImage) profileData.profileImage = "/uploads/profile-default.jpg";
-
-//     res.status(200).json({ msg: "Profile retrieved successfully", profile: profileData });
-//   } catch (err) {
-//     res.status(500).json({ msg: err.message });
-//   }
-// };

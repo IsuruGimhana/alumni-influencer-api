@@ -1,7 +1,15 @@
-// This file groups the database connection and models together.
-// It allows us to access everything from one place (db object).
-// Each model (like User) represents a table in the database.
-// The sequelize instance is used to run queries and sync models.
+/**
+ * Database Index (Model Registry)
+ *
+ * Central registry that connects Sequelize instance with all application models.
+ * Provides a single access point for database operations across the project.
+ *
+ * Logic:
+ * - Imports Sequelize connection instance.
+ * - Registers all models (tables) in a single db object.
+ * - Exposes models and sequelize instance for use in controllers.
+ * - Enables association setup between models in a centralized location.
+ */
 
 import sequelize from "../config/db.js";
 import User from "./User.js";

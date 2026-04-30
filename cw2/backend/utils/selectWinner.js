@@ -3,6 +3,21 @@ const { Bid, User, Profile } = db;
 import { Op } from "sequelize";
 import { sendEmail } from "./sendEmail.js";
 
+/**
+ * Daily Winner Selection (Alumnus of the Day)
+ *
+ * Automatically selects the highest valid bid as the daily winner
+ * and updates bid statuses, user balances, and notifications.
+ *
+ * Logic:
+ * - Fetch all bids for today ordered by highest amount.
+ * - Iterate through bids in descending order.
+ * - Enforce monthly win limit based on user attendance status.
+ * - Select first eligible bidder as winner.
+ * - Deduct winning amount from sponsorship balance.
+ * - Mark remaining bids as "lost".
+ * - Send email notifications to winner and non-winners.
+ */
 export const selectDailyWinner = async () => {
   const today = new Date().toLocaleDateString("en-CA"); // YYYY-MM-DD format
   const startOfMonth = new Date();

@@ -1,15 +1,17 @@
 import db from "../models/index.js";
 const { ApiKey, ApiUsage, Bid, User, Profile, Degree, Certification, License, Course, Work } = db;
 import crypto from "crypto";
-// import { get } from "http";
 import { Op, fn, col, literal } from "sequelize";
 import { Parser } from 'json2csv';
 import PDFDocument from "pdfkit";
 
 /**
- * Generate a new API Key for the ar_app or dashboard client
+ * API Key Management Controllers - Developers
  */
 
+/**
+ * Generate a new API Key for the ar_app or dashboard client
+ */
 export const generateApiKey = async (req, res) => {
   try {
     const { label, clientType } = req.body;
@@ -55,7 +57,7 @@ export const revokeApiKey = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // 1. Find and update the key only if it belongs to the logged-in user
+    // Find and update the key only if it belongs to the logged-in user
       const apiKeys = await ApiKey.findOne({
         where: { id, userId: req.user.id }
       });
@@ -67,7 +69,6 @@ export const revokeApiKey = async (req, res) => {
       apiKeys.isActive = false;
       await apiKeys.save();
 
-    // 2. Consistent success response
     res.status(200).json({ msg: "Key revoked successfully" });
   } catch (err) {
     res.status(500).json({ msg: err.message });
@@ -123,7 +124,7 @@ export const getKeyStats = async (req, res) => {
 };
 
 /**
- * Retrieve the profile of the Alumnus of the Day
+ * Retrieve the profile of the Alumnus of the Day - for ar_app client
  */
 export const getAlumnusOfTheDay = async (req, res) => {
   try {
@@ -147,13 +148,19 @@ export const getAlumnusOfTheDay = async (req, res) => {
     const profile = winningBid.User.Profile;
     const profileData = profile.toJSON();
 
-    if (!profileData.profileImage) profileData.profileImage = "/uploads/profile-default.jpg";
+    const baseUrl = process.env.BASE_URL; // e.g. http://localhost:5050
+    if (!profileData.profileImage) profileData.profileImage = `${baseUrl}/uploads/profile-default.jpg`;
 
     res.status(200).json({ msg: "Profile retrieved successfully", profile: profileData });
   } catch (err) {
     res.status(500).json({ msg: err.message });
   }
 };
+
+
+/**
+ * Analytics Dashboard & Alumni Directory Controllers - Dashboard Admins
+ */
 
 /**
  * HELPER: Generates the filter object for Analytics
@@ -185,8 +192,15 @@ const getFilters = (query, base = '') => {
 };
 
 /**
- * 1. Curriculum Skills Gap
- * Counts external certifications held by alumni to identify skills missing from the university curriculum.
+ * Curriculum Skills Gap Analysis
+ *
+ * Identifies gaps between university curricula and industry demand
+ * by analyzing certifications earned by alumni.
+ *
+ * Logic:
+ * - Aggregate certifications by title.
+ * - Count DISTINCT records to avoid duplicates from joins.
+ * - Join Certification → Profile → Degree for filtering (e.g., degree, graduation year).
  */
 export const getSkillsGapData = async (req, res) => {
   console.log("Received query parameters for skills gap:", req.query);
@@ -219,8 +233,15 @@ export const getSkillsGapData = async (req, res) => {
 };
 
 /**
- * 2. Job Title Trends
- * Identifies the top 5 most common professional roles (e.g., Software Engineer) held by graduates.
+ * Job Title Trends
+ *
+ * Identifies the most common professional roles held by graduates.
+ *
+ * Logic:
+ * - Aggregate work records by jobTitle.
+ * - Count DISTINCT records to avoid duplicates from joins.
+ * - Join Work → Profile → Degree for filtering (e.g., degree, graduation year).
+ * - Sort by highest count and limit to top 5 roles.
  */
 export const getJobTitleTrends = async (req, res) => {
   try {
@@ -253,8 +274,15 @@ export const getJobTitleTrends = async (req, res) => {
 };
 
 /**
- * 3. Top Employers
- * Lists the top 5 companies or organizations that employ the highest number of alumni.
+ * Top Employers
+ *
+ * Identifies the organizations that employ the highest number of alumni.
+ *
+ * Logic:
+ * - Aggregate work records by company.
+ * - Count DISTINCT records to avoid duplicates from joins.
+ * - Join Work → Profile → Degree for filtering (e.g., degree, graduation year).
+ * - Sort by highest count and limit to top 5 employers.
  */
 export const getTopEmployers = async (req, res) => {
   try {
@@ -286,8 +314,15 @@ export const getTopEmployers = async (req, res) => {
 };
 
 /**
- * 4. Geographical Distribution
- * Maps the global reach of alumni by counting total graduates per city and country.
+ * Geographical Distribution
+ *
+ * Identifies the global distribution of alumni based on location.
+ *
+ * Logic:
+ * - Aggregate profiles by city and country.
+ * - Count DISTINCT profiles to avoid duplicates from joins.
+ * - Join Profile → Degree for filtering (e.g., degree, graduation year).
+ * - Sort by highest count and limit to top 5 locations.
  */
 export const getGeographicalDist = async (req, res) => {
   try {
@@ -313,8 +348,16 @@ export const getGeographicalDist = async (req, res) => {
 };
 
 /**
- * 5. Certification Trends
- * Tracks the growth of upskilling by grouping certification completion counts by month and year.
+ * Certification Trends
+ *
+ * Identifies upskilling trends over time based on certification completion dates.
+ *
+ * Logic:
+ * - Group certifications by month and year using DATE_TRUNC.
+ * - Format dates (e.g., "Jan 2024") for readable output.
+ * - Count total certifications per time period.
+ * - Join Certification → Profile → Degree for filtering (e.g., degree, graduation year).
+ * - Sort results in chronological order.
  */
 export const getCertificationTrend = async (req, res) => {
   try {
@@ -352,8 +395,16 @@ export const getCertificationTrend = async (req, res) => {
 };
 
 /**
- * 6. Programme Distribution
- * Breaks down the alumni population by their specific field of study or degree title.
+ * Programme Distribution
+ *
+ * Identifies the distribution of alumni across different degree programmes.
+ *
+ * Logic:
+ * - Aggregate users by degree title (programme).
+ * - Count DISTINCT users to avoid duplicates from joins.
+ * - Join User → Profile → Degree to access programme data.
+ * - Filter only alumni users and apply optional query filters.
+ * - Sort by highest count to highlight most common programmes.
  */
 export const getProgrammeDistribution = async (req, res) => {
   try {
@@ -391,130 +442,21 @@ export const getProgrammeDistribution = async (req, res) => {
   }
 };
 
-// export const generateDashboardReport = async (req, res) => {
-//   try {
-//     const filters = getFilters(req.query);
-
-//     const countCertId = fn('COUNT', fn('DISTINCT', col('Certification.id')));
-//     const countWorkId = fn('COUNT', fn('DISTINCT', col('Work.id')));
-
-//     // -----------------------------
-//     // SKILLS GAP
-//     // -----------------------------
-//     const skills = await Certification.findAll({
-//       attributes: ['title', [countCertId, 'count']],
-//       include: [{
-//         model: Profile,
-//         attributes: [],
-//         include: [{
-//           model: Degree,
-//           attributes: [],
-//         }]
-//       }],
-//       where: filters,
-//       group: ['Certification.title'],
-//       order: [[countCertId, 'DESC']],
-//       raw: true,
-//       subQuery: false
-//     });
-
-//     // -----------------------------
-//     // JOBS
-//     // -----------------------------
-//     const jobs = await Work.findAll({
-//       attributes: ['jobTitle', [countWorkId, 'count']],
-//       include: [{
-//         model: Profile,
-//         attributes: [],
-//         include: [{
-//           model: Degree,
-//           attributes: [],
-//         }]
-//       }],
-//       where: filters,
-//       group: ['Work.jobTitle'],
-//       order: [[countWorkId, 'DESC']],
-//       limit: 5,
-//       raw: true,
-//       subQuery: false
-//     });
-
-//     // -----------------------------
-//     // EMPLOYERS
-//     // -----------------------------
-//     const employers = await Work.findAll({
-//       attributes: ['company', [countWorkId, 'count']],
-//       include: [{
-//         model: Profile,
-//         attributes: [],
-//         include: [{
-//           model: Degree,
-//           attributes: [],
-//         }]
-//       }],
-//       where: filters,
-//       group: ['Work.company'],
-//       order: [[countWorkId, 'DESC']],
-//       limit: 5,
-//       raw: true,
-//       subQuery: false
-//     });
-
-//     // -----------------------------
-//     // PDF GENERATION
-//     // -----------------------------
-//     const doc = new PDFDocument();
-
-//     res.setHeader("Content-Type", "application/pdf");
-//     res.setHeader(
-//       "Content-Disposition",
-//       "attachment; filename=dashboard_report.pdf"
-//     );
-
-//     doc.pipe(res);
-
-//     doc.fontSize(18).text("Alumni Intelligence Report", { align: "center" });
-//     doc.moveDown();
-
-//     // Filters info (IMPORTANT UX)
-//     doc.fontSize(10).text(
-//       `Filters: Programme=${req.query.programme || "All"} | Year=${req.query.gradDate || "All"}`
-//     );
-//     doc.moveDown();
-
-//     // Skills
-//     doc.fontSize(14).text("Top Skills Gap");
-//     skills.slice(0, 5).forEach(s =>
-//       doc.text(`- ${s.title}: ${s.count}`)
-//     );
-
-//     doc.moveDown();
-
-//     // Jobs
-//     doc.text("Top Job Roles");
-//     jobs.forEach(j =>
-//       doc.text(`- ${j.jobTitle}: ${j.count}`)
-//     );
-
-//     doc.moveDown();
-
-//     // Employers
-//     doc.text("Top Employers");
-//     employers.forEach(e =>
-//       doc.text(`- ${e.company}: ${e.count}`)
-//     );
-
-//     doc.end();
-
-//   } catch (err) {
-//     res.status(500).json({
-//       msg: "Failed to generate report",
-//       error: err.message,
-//     });
-//   }
-// };
-
-
+/**
+ * Dashboard Report Generator (PDF Export)
+ *
+ * Generates a structured PDF report of alumni analytics dashboards,
+ * combining multiple chart images into a printable layout.
+ *
+ * Logic:
+ * - Receives chart images and applied filters from request body.
+ * - Uses PDFKit to build a paginated A4 report.
+ * - Defines a reusable "card" renderer for consistent chart blocks.
+ * - Builds header with metadata (date + filters).
+ * - Arranges charts in a 2-column grid layout across 3 rows.
+ * - Adds footer with page numbering for professional formatting.
+ * - Streams PDF directly to response for download.
+ */
 export const generateDashboardReport = async (req, res) => {
   try {
     const { charts, filters } = req.body;
@@ -540,13 +482,13 @@ export const generateDashboardReport = async (req, res) => {
 
     // ================= HELPER: CARD =================
     const addChartCard = (title, image, x, y, width, height) => {
-      // Card background (no shadow support in PDFKit)
+      // Card background
       doc
         .roundedRect(x, y, width, height, 8)
         .fillColor(COLORS.cardBg)
         .fill();
 
-      // Border (optional for modern look)
+      // Border
       doc
         .roundedRect(x, y, width, height, 8)
         .lineWidth(0.5)
@@ -668,6 +610,12 @@ export const generateDashboardReport = async (req, res) => {
   }
 };
 
+/**
+ * HELPER: Formats Alumni Data for Frontend Consumption
+ *
+ * Normalizes raw User → Profile → Degree → Work data into a clean
+ * alumni object used in alumni directory, and dashboards.
+ */
 export const formatAlumni = (user) => {
   const profile = user.Profile || {};
   const degree = profile.Degrees?.[0] || {};
@@ -706,6 +654,19 @@ export const formatAlumni = (user) => {
   };
 };
 
+/**
+ * Alumni Directory
+ *
+ * Retrieves a complete list of alumni with their profile information
+ * for display in the alumni directory page.
+ *
+ * Logic:
+ * - Fetch users with role = "alumni".
+ * - Apply optional filters (e.g., programme, graduation year).
+ * - Include Profile, Degree, and Work associations.
+ * - Disable subQuery to simplify nested joins.
+ * - Format raw data using formatAlumni for frontend consistency.
+ */
 export const getAlumniDirectory = async (req, res) => {
   try {
     const alumni = await User.findAll({
@@ -731,6 +692,18 @@ export const getAlumniDirectory = async (req, res) => {
   }
 };
 
+/**
+ * Export Alumni Data (CSV)
+ *
+ * Exports filtered alumni directory data into a downloadable CSV file.
+ *
+ * Logic:
+ * - Fetch alumni with Profile, Degree, and Work associations.
+ * - Apply optional filters (e.g., programme, graduation year).
+ * - Transform data using formatAlumni for consistency.
+ * - Map formatted data into flat CSV structure.
+ * - Generate CSV file using Parser and stream it as a download.
+ */
 export const exportAlumniCSV = async (req, res) => {
   try {
     const alumni = await User.findAll({
@@ -775,6 +748,18 @@ export const exportAlumniCSV = async (req, res) => {
   }
 };
 
+/**
+ * Export Alumni Data (PDF)
+ *
+ * Generates a formatted PDF report of alumni directory data.
+ *
+ * Logic:
+ * - Fetch alumni with Profile, Degree, and Work associations.
+ * - Apply optional filters (e.g., programme, graduation year).
+ * - Format each record using formatAlumni.
+ * - Render structured PDF with headings and profile details.
+ * - Stream PDF directly to response as a downloadable file.
+ */
 export const exportAlumniPDF = async (req, res) => {
   console.log("Received query parameters for PDF export:", req.query);
   try {
@@ -831,6 +816,11 @@ export const exportAlumniPDF = async (req, res) => {
   }
 }
 
+/**
+ * Get Programmes
+ *
+ * Retrieves a list of unique degree programmes from the system.
+ */
 export const getProgrammes = async (req, res) => {
   const programmes = await Degree.findAll({
     attributes: [
@@ -842,6 +832,11 @@ export const getProgrammes = async (req, res) => {
   res.json(programmes.map(p => p.title));
 };
 
+/**
+ * Get Graduation Years
+ *
+ * Retrieves a list of unique graduation years from degree completion dates.
+ */
 export const getGraduationYears = async (req, res) => {
   try {
     const years = await Degree.findAll({

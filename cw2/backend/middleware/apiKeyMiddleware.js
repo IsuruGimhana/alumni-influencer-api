@@ -2,7 +2,16 @@ import db from "../models/index.js";
 const { ApiKey, ApiUsage } = db;
 
 /**
- * Middleware to track usage and authorize Public API access via Bearer Tokens
+ * API Key Usage Tracking Middleware
+ *
+ * Protects public API routes using Bearer token authentication and enforces scope-based access control.
+ *
+ * Logic:
+ * - Extract Bearer token from Authorization header.
+ * - Validate API key existence and active status.
+ * - Check if key has required scope permission.
+ * - Log API usage for analytics and monitoring.
+ * - Attach API key metadata to request object for downstream use.
  */
 const trackUsage = (requiredScope) => {
   return async (req, res, next) => {
@@ -16,7 +25,7 @@ const trackUsage = (requiredScope) => {
 
       const token = authHeader.split(' ')[1];
 
-      // Verify key exists, is active, AND contains the required scopes
+      // 2. Verify key exists, is active, AND contains the required scopes
       const keyRecord = await ApiKey.findOne({ 
         where: { 
           key: token, 
@@ -28,25 +37,24 @@ const trackUsage = (requiredScope) => {
         return res.status(403).json({ msg: "Invalid or revoked API key" });
       }
 
-      // NEW: Scope Verification logic
+      // 3. Scope Verification logic
       if (!keyRecord.scopes.includes(requiredScope)) {
         return res.status(403).json({ 
           msg: `Forbidden: This key does not have the '${requiredScope}' permission.` 
         });
       }
 
-      // 3. Update key usage record
+      // 4. Update key usage record
       await ApiUsage.create({
         apiKeyId: keyRecord.id, // api key foreign key
         endpoint: req.originalUrl // log the endpoint being accessed
       });
 
-      // 3. Attach key info to request for the controller if needed
+      // 5. Attach key info to request for the controller if needed
       req.apiKey = keyRecord; 
 
       next();
     } catch (err) {
-      // Standardizing the error response to match your protect middleware
       return res.status(500).json({ msg: "Internal server error during API key validation" });
     }
   };

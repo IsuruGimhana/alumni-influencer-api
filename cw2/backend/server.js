@@ -25,7 +25,7 @@ import { selectDailyWinner } from "./utils/selectWinner.js";
 
 const app = express();
 
-// swagger setup
+// Swagger API documentation setup
 const swaggerDocument = YAML.load(
   path.resolve("./swagger.yaml")
 );
@@ -33,35 +33,52 @@ const swaggerDocument = YAML.load(
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // middleware
-// app.use(express.json());
+
 app.use(express.json({ limit: "50mb" })); // Increase the payload limit to 50MB to handle large JSON bodies (e.g., for profile pictures)
 app.use(express.urlencoded({ limit: "50mb", extended: true })); // Also increase the limit for URL-encoded data if needed (e.g., for form submissions with large data)
+
+/**
+ * CORS configuration:
+ * - Allows frontend access from CLIENT_URL
+ * - Enables cookies for authentication
+ */
 app.use(cors({
   origin: process.env.CLIENT_URL,
   credentials: true
 }));
+
+/**
+ * Security middleware (Helmet)
+ * Enables safer HTTP headers and cross-origin resource policy
+ */
 app.use(
   helmet({
     crossOriginResourcePolicy: { policy: "cross-origin" }
   })
 );
+
+// Parse cookies for JWT authentication
 app.use(cookieParser());
-// app.use(logApiUsage); // Log all API requests
 
 // Serve the uploads folder so images are accessible via URL
 app.use("/uploads", express.static("uploads"));
 
-// test route
+/**
+ * Test route to confirm API is running
+ */
 app.get("/", (req, res) => {
   res.send("API running...");
 });
+
+// API route mounting
 app.use("/api/auth", authRoutes);
 app.use("/api/profiles", profileRoutes);
 app.use("/api/bids", bidRoutes);
 app.use("/api/keys", apiKeyRoutes);
-// app.use("/api/admin", adminRoutes);
 
-// connect to database
+/**
+ * Database connection + initialization
+ */
 const connectDb = async () => {
   try {
     // await db.sequelize.authenticate(); // test the database connection
@@ -72,7 +89,11 @@ const connectDb = async () => {
     // console.log("TEST: Running selectDailyWinner() immediately for testing...");
     // await selectDailyWinner();
 
-    // Run after db connection is established at midnight every day
+    /**
+     * CRON JOB:
+     * Runs daily at midnight (UTC)
+     * Executes winner selection logic for bidding system
+     */
     cron.schedule("0 0 * * *", async () => {
       try {
         console.log("System: Starting Daily Alumni Selection...");

@@ -2,6 +2,20 @@ import { Op } from "sequelize"; // for advanced queries like date comparisons
 import db from "../models/index.js";
 const { Bid } = db;
 
+/**
+ * Place / Update Bid
+ *
+ * Handles bid creation and updates with sponsorship balance checks,
+ * monthly win limits, and live bidding status feedback.
+ *
+ * Logic:
+ * - Validate user profile and sponsorship balance.
+ * - Enforce monthly win limit (based on event attendance bonus).
+ * - Allow only one bid per day per user.
+ * - Permit only increasing bid values for updates.
+ * - Track monthly wins using start-of-month date filter.
+ * - Compare against highest bid for live ranking status.
+ */
 export const placeBid = async (req, res) => {
   try {
     const { amount } = req.body;
@@ -83,6 +97,17 @@ export const placeBid = async (req, res) => {
   }
 };
 
+/**
+ * Get My Bid (Today)
+ *
+ * Retrieves the current user's bid for the current day
+ * and returns its live competitive status.
+ *
+ * Logic:
+ * - Fetch today's bid for the logged-in user.
+ * - Compare against highest bid for the day.
+ * - Return bid amount, DB status, and live ranking status.
+ */
 export const getMyBid = async (req, res) => {
   try {
     const today = new Date().toLocaleDateString("en-CA");

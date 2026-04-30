@@ -6,37 +6,41 @@ import { sendEmail } from "../utils/sendEmail.js";
 
 const User = db.User;
 
-// GET ME
+/**
+ * Get Current User
+ *
+ * Returns the authenticated user's data using the protect middleware.
+ *
+ * Logic:
+ * - Relies on protect middleware for authentication.
+ * - Returns user attached to req.user.
+ */
 export const getMe = async (req, res) => {
   try {
-    // cookie-based JWT
-    const token = req.cookies.token;
-
-    if (!token) {
+    if (!req.user) {
       return res.status(401).json({ msg: "Not authenticated" });
     }
 
-    // verify token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-    // get user
-    const user = await User.findByPk(decoded.id, {
-      attributes: { exclude: ["password"] } // NEVER send password
-    });
-
-    if (!user) {
-      return res.status(404).json({ msg: "User not found" });
-    }
-
-    console.log("User fetched:", user);
-    res.status(200).json(user);
-
+    res.status(200).json(req.user);
   } catch (err) {
-    res.status(401).json({ msg: "Invalid or expired token" });
+    res.status(500).json({ msg: "Server error" });
   }
 };
 
-// REGISTER
+/**
+ * User Registration
+ *
+ * Creates a new user account with email verification and secure password storage.
+ *
+ * Logic:
+ * - Validate university email domain.
+ * - Enforce strong password policy.
+ * - Check if user already exists.
+ * - Hash password using bcrypt (salt rounds = 10).
+ * - Generate email verification token with expiry.
+ * - Store user with unverified status.
+ * - Send verification email to user.
+ */
 export const register = async (req, res) => {
   try {
     const { email, password, role } = req.body;
@@ -103,7 +107,18 @@ export const register = async (req, res) => {
   }
 };
 
-// LOGIN
+/**
+ * User Login
+ *
+ * Authenticates user and issues JWT session cookie.
+ *
+ * Logic:
+ * - Find user by email.
+ * - Compare hashed password using bcrypt.
+ * - Ensure email is verified before login.
+ * - Generate JWT token with 1-day expiry.
+ * - Store token in HTTP-only cookie.
+ */
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -147,7 +162,11 @@ export const login = async (req, res) => {
   }
 };
 
-// LOGOUT
+/**
+ * User Logout
+ *
+ * Clears authentication session by removing JWT cookie.
+ */
 export const logout = (req, res) => {
   res.clearCookie("token", {
     httpOnly: true,
@@ -158,7 +177,17 @@ export const logout = (req, res) => {
   res.status(200).json({ msg: "Logout successful" });
 };
 
-// EMAIL VERIFICATION
+/**
+ * Email Verification
+ *
+ * Activates user account after validating email verification token.
+ *
+ * Logic:
+ * - Find user by verification token.
+ * - Check token validity and expiry.
+ * - Mark user as verified.
+ * - Clear verification token fields.
+ */
 export const verifyEmail = async (req, res) => {
 
   try {
@@ -191,7 +220,17 @@ export const verifyEmail = async (req, res) => {
   }
 };
 
-// FORGOT PASSWORD
+/**
+ * Forgot Password
+ *
+ * Initiates password reset process by sending reset link via email.
+ *
+ * Logic:
+ * - Find user by email.
+ * - Generate secure reset token with expiry (30 mins).
+ * - Save token in database.
+ * - Send password reset email with link.
+ */
 export const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
@@ -227,7 +266,17 @@ export const forgotPassword = async (req, res) => {
   }
 };
 
-// RESET PASSWORD
+/**
+ * Reset Password
+ *
+ * Resets user password using a valid reset token.
+ *
+ * Logic:
+ * - Validate reset token and expiry.
+ * - Enforce strong password policy.
+ * - Hash new password using bcrypt.
+ * - Update user password and clear reset token fields.
+ */
 export const resetPassword = async (req, res) => {
   try {
     const { token } = req.params;

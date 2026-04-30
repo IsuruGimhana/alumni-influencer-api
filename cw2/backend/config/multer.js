@@ -2,6 +2,19 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 
+/**
+ * File Upload Middleware (Multer)
+ *
+ * Handles image uploads for user profile pictures.
+ *
+ * Logic:
+ * - Ensures uploads directory exists before storing files.
+ * - Stores files on disk with unique filenames (userId + timestamp).
+ * - Restricts uploads to image formats (jpg, jpeg, png, webp).
+ * - Enforces file size limit (2MB max).
+ * - Rejects invalid file types before saving to disk.
+ */
+
 // Ensure upload directory exists
 const uploadDir = "uploads/";
 if (!fs.existsSync(uploadDir)) {
