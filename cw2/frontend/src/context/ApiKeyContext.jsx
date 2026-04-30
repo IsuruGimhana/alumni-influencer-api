@@ -1,50 +1,3 @@
-// // context/ApiKeyContext.jsx
-// import { createContext, useState, useEffect } from "react";
-// import * as apiKeyService from "../api/apiKeyService";
-
-// export const ApiKeyContext = createContext();
-
-// export const ApiKeyProvider = ({ children }) => {
-//   const [keys, setKeys] = useState([]);
-//   const [loading, setLoading] = useState(true);
-
-//   const fetchKeys = async () => {
-//     try {
-//       setLoading(true);
-//       const res = await apiKeyService.getMyKeys();
-//       setKeys(res.data.apiKeys || res.data);
-//     } catch (err) {
-//       console.error("Failed to fetch keys", err);
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   useEffect(() => {
-//     fetchKeys();
-//   }, []);
-
-//   const createKey = async (data) => {
-//     const res = await apiKeyService.createApiKey(data);
-//     await fetchKeys(); // refresh list
-//     return res.data;   // contains raw key
-//   };
-
-//   const revokeKey = async (id) => {
-//     await apiKeyService.revokeKey(id);
-
-//     setKeys((prev) => prev.filter((k) => k.id !== id));
-//   };
-
-//   return (
-//     <ApiKeyContext.Provider
-//       value={{ keys, loading, fetchKeys, createKey, revokeKey }}
-//     >
-//       {children}
-//     </ApiKeyContext.Provider>
-//   );
-// };
-
 import { createContext, useState, useEffect } from "react";
 import * as apiKeyService from "../api/apiKeyService";
 
@@ -54,9 +7,13 @@ export const ApiKeyProvider = ({ children }) => {
   const [keys, setKeys] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // per-key stats cache (important for UI)
+  // stores per-key usage stats (used in analytics/dashboard UI)
   const [keyStats, setKeyStats] = useState({});
 
+  /**
+   * Load all API keys for the logged-in user
+   * Used on initial render and after create/revoke actions
+   */
   const fetchKeys = async () => {
     try {
       setLoading(true);
@@ -76,18 +33,20 @@ export const ApiKeyProvider = ({ children }) => {
     fetchKeys();
   }, []);
 
-  // CREATE KEY
+  /**
+   * Create a new API key and refresh list
+   * Returns raw key only once (for user to copy)
+   */
   const createKey = async (data) => {
     const res = await apiKeyService.createApiKey(data);
     await fetchKeys();
     return res?.data?.apiKey;
   };
 
-  // REVOKE KEY
-  // const revokeKey = async (id) => {
-  //   await apiKeyService.revokeKey(id);
-  //   setKeys((prev) => prev.filter((k) => k.id !== id));
-  // };
+  /**
+   * Revoke (deactivate) an API key and refresh list
+   * Note: keys are not deleted from DB, just marked inactive
+   */
   const revokeKey = async (id) => {
     await apiKeyService.revokeKey(id);
 
@@ -100,7 +59,10 @@ export const ApiKeyProvider = ({ children }) => {
     );
   };
 
-  // GET KEY STATS
+  /**
+   * Fetch usage stats for a specific API key
+   * Cached per-key for dashboard performance
+   */
   const fetchKeyStats = async (id) => {
     try {
       const res = await apiKeyService.getKeyStats(id);

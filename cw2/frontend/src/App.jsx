@@ -27,9 +27,10 @@ import InitialProfileSetupPage from "./pages/alumni/InitialProfileSetupPage";
 import ApiKeyPage from "./pages/developer/ApiKeyPage";
 
 // Dashboard
-// import DashboardPage from "./pages/dashboard/DashboardPage";
 import DashboardHomePage from "./pages/dashboard/DashboardHomePage";
 import AlumniDirectoryPage from "./pages/dashboard/AlumniDirectoryPage";
+
+import Unauthorized from "./pages/auth/Unauthorized"; 
 
 function App() {
   const { authLoading } = useAuth();
@@ -45,6 +46,7 @@ function App() {
         <Route path="/verify/:token" element={<VerifyEmailPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
+        <Route path="/unauthorized" element={<Unauthorized />} />
 
         {/* ================= ALUMNI ================= */}
         <Route
@@ -102,7 +104,6 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={["dashboard"]}>
               <DashboardLayout>
-                {/* <DashboardPage /> */}
                 <DashboardHomePage />
               </DashboardLayout>
             </ProtectedRoute>

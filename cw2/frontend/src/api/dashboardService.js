@@ -1,5 +1,3 @@
-// api/dashboardService.js
-
 // @param {Object} params - { programme?: string, gradDate?: string }
 import dashboardApi from "./dashboardApi";
 

@@ -3,25 +3,29 @@ import * as dashboardService from "../api/dashboardService";
 
 export const DashboardContext = createContext();
 
+// Normalize API response for directory list
+// Ensures directory API response is always an array
 const normalizeDirectory = (res) => {
   return Array.isArray(res?.data) ? res.data : [];
 };
 
 export const DashboardProvider = ({ children }) => {
-  // -----------------------------
-  // STATE
-  // -----------------------------
+
+  // Core directory state
   const [alumni, setAlumni] = useState([]);
   const [loadingDirectory, setLoadingDirectory] = useState(false);
 
+  // Filter options for UI dropdowns
   const [programmes, setProgrammes] = useState([]);
   const [years, setYears] = useState([]);
 
+  // Global filters applied across all dashboard queries
   const [filters, setFilters] = useState({
     programme: "",
     gradDate: "",
   });
 
+  // Analytics datasets
   const [skillsGap, setSkillsGap] = useState([]);
   const [jobTrends, setJobTrends] = useState([]);
   const [employers, setEmployers] = useState([]);
@@ -29,9 +33,10 @@ export const DashboardProvider = ({ children }) => {
   const [certificationTrends, setCertificationTrends] = useState([]);
   const [programmeDistribution, setProgrammeDistribution] = useState([]);
 
-  // -----------------------------
-  // DIRECTORY
-  // -----------------------------
+   /**
+   * Fetch filtered alumni directory based on selected filters
+   */
+
   // Memoized directory fetch function to prevent unnecessary re-creation on every render.
   // useCallback ensures the function reference remains stable unless `filters` change,
   // which is important when passing this function as a dependency (e.g., in useEffect).
@@ -51,9 +56,9 @@ export const DashboardProvider = ({ children }) => {
     }
   }, [filters]);
 
-  // -----------------------------
-  // OPTIONS
-  // -----------------------------
+  /**
+   * Load dropdown filter options (programmes, graduation years)
+   */
   const fetchOptions = useCallback(async () => {
     try {
       const [progRes, yearRes] = await Promise.all([
@@ -68,9 +73,9 @@ export const DashboardProvider = ({ children }) => {
     }
   }, []);
 
-  // -----------------------------
-  // ANALYTICS
-  // -----------------------------
+  /**
+   * Fetch all dashboard analytics in parallel
+   */
   const fetchAnalytics = useCallback(async () => {
     try {
       const results = await Promise.allSettled([
@@ -103,17 +108,16 @@ export const DashboardProvider = ({ children }) => {
     }
   }, [filters]);
 
-  // -----------------------------
-  // INIT
-  // -----------------------------
-  useEffect(() => {
-  console.log("skillsGap:", skillsGap);
-  console.log("jobTrends:", jobTrends);
-  console.log("employers:", employers);
-  console.log("geo:", geo);
-  console.log("certificationTrends:", certificationTrends);
-  console.log("programmeDistribution:", programmeDistribution);
-  }, [skillsGap, jobTrends, geo, employers, certificationTrends, programmeDistribution]);
+
+  // useEffect(() => {
+  // console.log("skillsGap:", skillsGap);
+  // console.log("jobTrends:", jobTrends);
+  // console.log("employers:", employers);
+  // console.log("geo:", geo);
+  // console.log("certificationTrends:", certificationTrends);
+  // console.log("programmeDistribution:", programmeDistribution);
+  // }, [skillsGap, jobTrends, geo, employers, certificationTrends, programmeDistribution]);
+  
   useEffect(() => {
     fetchOptions();
   }, [fetchOptions]);
@@ -158,6 +162,9 @@ export const DashboardProvider = ({ children }) => {
     }
   };
 
+  /**
+   * Export filtered directory data as PDF
+   */
   const exportPDF = async () => {
     try {
       const res = await dashboardService.exportAlumniPDF(filters);
@@ -179,26 +186,9 @@ export const DashboardProvider = ({ children }) => {
     }
   };
 
-  // const generateReport = async () => {
-  //   try {
-  //     const res = await dashboardService.generateReport(filters);
-
-  //     const blob = new Blob([res.data], { type: "application/pdf" });
-  //     const url = window.URL.createObjectURL(blob);
-
-  //     const link = document.createElement("a");
-  //     link.href = url;
-  //     link.download = "dashboard_report.pdf";
-
-  //     document.body.appendChild(link);
-  //     link.click();
-  //     link.remove();
-
-  //     window.URL.revokeObjectURL(url);
-  //   } catch (err) {
-  //     console.error("Report generation failed:", err);
-  //   }
-  // };
+  /**
+   * Generate full dashboard report (charts + filters)
+   */
   const generateReport = async (charts) => {
     try {
       const res = await dashboardService.generateReport({

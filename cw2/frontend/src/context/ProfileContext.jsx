@@ -4,7 +4,10 @@ import { useAuth } from "../hooks/useAuth";
 
 export const ProfileContext = createContext();
 
-// NORMALIZER
+/**
+ * RESPONSE NORMALIZERS
+ * Ensures API responses are consistent across different endpoints
+ */
 const normalizeProfile = (res) => {
   return (
     res?.data?.profile ||
@@ -28,12 +31,14 @@ const normalizeImage = (res) => {
 export const ProfileProvider = ({ children }) => {
   const { user } = useAuth();
 
+  // profile states
   const [profile, setProfile] = useState(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
 
-  // -----------------------------
-  // GET PROFILE
-  // -----------------------------
+
+  /**
+   *  FETCH PROFILE (ON USER LOAD / LOGIN)
+   */
   const fetchProfile = async () => {
     console.log("user",user);
     if (!user) return;
@@ -57,9 +62,10 @@ export const ProfileProvider = ({ children }) => {
     fetchProfile();
   }, [user]);
 
-  // -----------------------------
-  // CREATE / UPDATE PROFILE
-  // -----------------------------
+
+  /**
+   * PROFILE UPDATE
+   */
   const updateProfile = async (data) => {
     const res = await profileService.updateProfile(data);
     const updated = normalizeProfile(res);
@@ -70,6 +76,9 @@ export const ProfileProvider = ({ children }) => {
     return res.data;
   };
 
+  /**
+   * PROFILE CREATION (FOR FIRST-TIME USERS)
+   */
   const createProfile = async (data) => {
     const res = await profileService.createProfile(data);
     const created = normalizeProfile(res);
@@ -80,9 +89,10 @@ export const ProfileProvider = ({ children }) => {
     return res.data;
   };
 
-  // -----------------------------
-  // IMAGE UPLOAD
-  // -----------------------------
+
+  /**
+   * PROFILE IMAGE UPLOAD
+   */
   const updateProfileImage = async (file) => {
     const formData = new FormData();
     formData.append("profileImage", file);
@@ -99,9 +109,9 @@ export const ProfileProvider = ({ children }) => {
     return res.data;
   };
 
-  // -----------------------------
-  // DEGREE
-  // -----------------------------
+/**
+ * DEGREE MANAGEMENT
+ */
   const addDegree = async (data) => {
     const res = await profileService.addDegree(data);
     const entry = normalizeEntry(res);
@@ -143,9 +153,10 @@ export const ProfileProvider = ({ children }) => {
     return res.data;
   };
 
-  // -----------------------------
-  // CERTIFICATION
-  // -----------------------------
+
+  /**
+   * CERTIFICATION MANAGEMENT
+   */
   const addCertification = async (data) => {
     const res = await profileService.addCertification(data);
     const entry = normalizeEntry(res);
@@ -187,9 +198,9 @@ export const ProfileProvider = ({ children }) => {
     return res.data;
   };
 
-  // -----------------------------
-  // EXPERIENCE
-  // -----------------------------
+  /**
+   * EXPERIENCE (WORK) MANAGEMENT
+   */
   const addExperience = async (data) => {
     const res = await profileService.addExperience(data);
     const entry = normalizeEntry(res);
@@ -227,9 +238,9 @@ export const ProfileProvider = ({ children }) => {
     return res.data;
   };
 
-  // -----------------------------
-  // LICENSES
-  // -----------------------------
+  /**
+   * LICENSE MANAGEMENT
+   */
   const addLicense = async (data) => {
     const res = await profileService.addLicense(data);
     const entry = normalizeEntry(res);
@@ -271,9 +282,9 @@ export const ProfileProvider = ({ children }) => {
     return res.data;
   };
 
-  // -----------------------------
-  // COURSES
-  // -----------------------------
+  /**
+   * COURSE MANAGEMENT
+   */
   const addCourse = async (data) => {
     const res = await profileService.addCourse(data);
     const entry = normalizeEntry(res);

@@ -1,4 +1,3 @@
-// api/arAppService.js
 import arAppApi from "./arAppApi";
 
 export const getAlumnusOfTheDay = () =>

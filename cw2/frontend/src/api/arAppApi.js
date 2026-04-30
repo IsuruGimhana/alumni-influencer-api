@@ -1,4 +1,3 @@
-// api/arAppApi.js
 import axios from "axios";
 
 const arAppApi = axios.create({

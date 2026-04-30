@@ -2,16 +2,13 @@ import api from "./axios";
 
 // BASE PROFILE
 
-// GET /profile/me
 export const getMyProfile = () => api.get("/profiles/me");
 
-// POST /profile/
 export const createProfile = (data) => api.post("/profiles", data);
 
-// PUT /profile/
 export const updateProfile = (data) => api.put("/profiles", data);
 
-// POST /profile/me/image
+// Upload profile image
 export const uploadProfileImage = (formData) =>
   api.post("/profiles/me/image", formData, {
     headers: {
@@ -22,14 +19,11 @@ export const uploadProfileImage = (formData) =>
 
 // DEGREES
 
-// POST /profile/degrees
 export const addDegree = (data) => api.post("/profiles/degrees", data);
 
-// PUT /profile/degrees/:id
 export const updateDegree = (id, data) =>
   api.put(`/profiles/degrees/${id}`, data);
 
-// DELETE /profile/degrees/:id
 export const deleteDegree = (id) =>
   api.delete(`/profiles/degrees/${id}`);
 

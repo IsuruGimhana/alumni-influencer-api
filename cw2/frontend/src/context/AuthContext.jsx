@@ -5,10 +5,13 @@ import * as profileService from "../api/profileService";
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null); // ONLY auth user
+  const [user, setUser] = useState(null); // authenticated user state
   const [authLoading, setAuthLoading] = useState(true);
 
-  // Load logged-in user on app start / refresh
+  /**
+   * Fetch logged-in user on app load/refresh
+   * Keeps session persistent using cookie-based JWT
+   */
   const fetchUser = async () => {
     try {
       const res = await authService.getMe();
@@ -24,7 +27,12 @@ export const AuthProvider = ({ children }) => {
     fetchUser();
   }, []);
 
-  // Login
+  /**
+   * Handles login flow:
+   * - authenticate user
+   * - fetch user profile
+   * - return combined auth + profile data
+   */
   const loginUser = async (form) => {
     const loginRes = await authService.login(form);
 
@@ -44,7 +52,9 @@ export const AuthProvider = ({ children }) => {
     };
   };
 
-  // Logout
+  /**
+   * Logout user and clear auth state
+   */
   const logoutUser = async () => {
     await authService.logout();
     setUser(null);

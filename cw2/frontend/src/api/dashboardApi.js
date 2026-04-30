@@ -1,4 +1,3 @@
-// api/dashboardApi.js
 import axios from "axios";
 
 const dashboardApi = axios.create({

@@ -40,19 +40,6 @@ export default function ProfilePage() {
 
   if (loadingProfile) return <Loader />; 
   
-
-  // const handleUpdate = async (newData) => {
-  //   try {
-  //     // Logic: Merge existing data with new form data
-  //     const updatedProfile = { ...profile, ...newData };
-  //     await profileService.saveProfile(updatedProfile);
-      
-  //     fetchProfile(); // Refresh UI
-  //     setOpenModal(false);
-  //   } catch (error) {
-  //     console.error("Update failed", error);
-  //   }
-  // };
   const handleUpdate = async (formData) => {
     setUpdating(true);
     setUpdateError([]);

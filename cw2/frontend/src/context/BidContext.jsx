@@ -10,9 +10,11 @@ export const BidProvider = ({ children }) => {
   const [myBid, setMyBid] = useState(null);
   const [loadingBid, setLoadingBid] = useState(true);
 
-  // -----------------------------
-  // FETCH MY BID
-  // -----------------------------
+
+  /**
+   * Loads today's bid for the logged-in user
+   * Only runs when a user is authenticated
+   */
   const fetchMyBid = async () => {
     if (!user) return;
 
@@ -31,14 +33,12 @@ export const BidProvider = ({ children }) => {
     fetchMyBid();
   }, [user]);
 
-  // -----------------------------
-  // PLACE BID
-  // -----------------------------
+  /**
+   * Places a new bid for the current day
+   * Returns backend response for UI feedback
+   */
   const placeBid = async (amount) => {
     const res = await bidService.placeBid({ amount });
-
-    // update UI immediately
-    // setMyBid(res.data);
 
     return res.data;
   };
