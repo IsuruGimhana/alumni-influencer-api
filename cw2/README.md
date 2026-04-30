@@ -1,107 +1,126 @@
-# Alumni Influencer Platform (MERN)
 
-This repository contains a MERN-based project with separate `frontend` and `backend` applications.  
-The primary focus of this README is the backend API (`backend`), while the frontend is a React app that consumes these services.
+---
 
-## 1) Project Overview
+# Alumni Influencer Platform
 
-The Alumni Influencer platform helps manage alumni profiles and engagement workflows, including a blind bidding process for featured alumni visibility.  
-It has evolved into a data-driven system with analytics, reporting, and alumni directory capabilities for dashboard and external client use cases.
+An end-to-end MERN stack solution designed to manage alumni engagement through data-driven profiles, a unique blind bidding system for featured visibility, and robust analytics for external stakeholders.
 
-## 2) Key Features
+---
 
-- JWT-based authentication using HTTP-only cookies
-- API key management with scoped permissions for external and analytics endpoints
-- Alumni profile management (profile details, education, certifications, experience, licenses, courses, profile image)
-- Blind bidding system for daily alumni selection logic
-- Analytics endpoints (skills gap, job trends, top employers, geography, certification trends, programme distribution)
-- Alumni directory with query-based filtering (programme, graduation year)
-- Report and export generation in PDF and CSV formats
+## Core Features
 
-## 3) System Architecture
+### For Alumni
+* **Comprehensive Profiles:** Manage education, courses, work history, certifications, and licenses.
+* **Blind Bidding:** Participate in a competitive bidding system for daily "Featured Alumni" status.
+* **Career Tracking:** Log courses and professional milestones.
 
-The backend follows a layered MVC-style structure with clear module boundaries:
+### For Admins
+* **Analytics Dashboard:** Insights into skills gaps, job trends, and geographic distribution.
+* **Reporting:** Export data and analytics in PDF and CSV formats.
 
-- `routes/` for endpoint definitions and middleware composition
-- `controllers/` for request handling and business logic orchestration
-- `models/` for Sequelize data models and database access
-- `middleware/` and `utils/` for reusable cross-cutting concerns (auth, authorization, API key scope checks, usage tracking, scheduling helpers)
+### For Developers
+* **API Key Management:** Issue scoped keys (`read:analytics`, `read:alumni`) for admins & external AR apps.
 
-## 4) Security Model
+---
 
-- **JWT authentication (cookie-based):** Users authenticate through login and receive a JWT in an HTTP-only `token` cookie.
-- **API key authentication (Bearer token):** External clients call selected endpoints with `Authorization: Bearer <API_KEY>`.
-- **Scoped permissions:** API keys are validated against required scopes such as `read:analytics`, `read:alumni`, and `read:alumni_of_day`.
+## Tech Stack
+
+| Component | Technologies |
+| :--- | :--- |
+| **Frontend** | React, Vite, Tailwind CSS, Recharts, Lucide Icons |
+| **Backend** | Node.js, Express, Sequelize ORM |
+| **Database** | PostgreSQL |
+| **Security** | JWT (HTTP-only cookies), Scoped API Keys, CSRF Protection |
+| **Utilities** | PDFKit, json2csv, Axios, Nodemailer |
+
+---
+
+## System Architecture
+
+The project is split into two main directories: `/backend` (Layered MVC) and `/frontend` (Component-based React).
+
+### Backend Structure
+```text
+backend/
+├── config/         # Application configuration (DB connection, multer setup, nodemailer configs)
+├── uploads/        # Stored uploaded files (Profile Images)
+├── controllers/    # Business logic & request handling
+├── models/         # Sequelize schemas (PostgreSQL)
+├── routes/         # API endpoint definitions
+├── middleware/     # Auth, Scoping, and Usage tracking etc.
+└── utils/          # schedulers
+```
+
+### Frontend Structure
+```text
+frontend/src/
+├── api/            # Axios clients + API service modules 
+├── assets/         # Static assets (images/icons) 
+├── components/     # Reusable UI (auth, layout, profile, common) 
+├── context/        # React Context providers (Auth, Dashboard, Profile, etc.) 
+├── hooks/          # Custom hooks (auth, profile, dashboard, csrf init, etc.) 
+├── pages/          # Route-level screens (auth, alumni, dashboard, developer) 
+├── state/          # Shared state helpers (e.g., CSRF token state) 
+├── utils/          # Utility helpers (error normalization, payload sanitization) 
+├── App.jsx         # Route map and protected route composition 
+└── main.jsx        # React root + provider wiring
+```
+
+---
+
+## Getting Started
+
+### Prerequisites
+* Node.js (v20+ recommended)
+* PostgreSQL
+
+### 1. Database Setup
+```bash
+createdb alumni_influencer_db
+```
+
+### 2. Backend Configuration
+1.  `cd backend`
+2.  `npm install`
+3.  Create a `.env` file from `.env.example`:
+    ```env
+    NODE_ENV=development
+    PORT=5050
+    CLIENT_URL=http://localhost:5173
+    BASE_URL=http://localhost:5050
+    JWT_SECRET=
+    DB_NAME=
+    DB_USER=
+    DB_PASS=
+    DB_HOST=
+    EMAIL_USER=
+    EMAIL_PASS=
+    ```
+4.  `npm run dev` (Runs at `http://localhost:5050`)
+
+### 3. Frontend Configuration
+1.  `cd frontend`
+2.  `npm install`
+3.  Create a `.env` file:
+    ```env
+    VITE_API_BASE_URL=http://localhost:5050/api
+    VITE_DASHBOARD_API_KEY=your_scoped_key
+    ```
+4.  `npm run dev` (Runs at `http://localhost:5173`)
+
+---
+
+## Security & Authentication
+
+- **JWT authentication (cookie-based):** Users authenticate through login and receive a JWT in an HTTP-only token cookie. 
+- **API key authentication (Bearer token):** External clients call selected endpoints with Authorization: Bearer <API_KEY>. 
+- **Scoped permissions:** API keys are validated against required scopes such as read:analytics, read:alumni, and read:alumni_of_day. 
 - **Usage tracking:** API key-protected requests are logged via middleware for usage and stats.
 
-## 5) Tech Stack
+---
 
-- Node.js
-- Express
-- Sequelize ORM
-- PostgreSQL
-- PDFKit (PDF generation)
-- json2csv (CSV export)
+## API Documentation
 
-## 6) API Documentation
+Interactive documentation is powered by Swagger. Once the backend is running, visit: `http://localhost:5050/api-docs`
 
-OpenAPI/Swagger documentation is available at:
-
-- `http://localhost:5050/api-docs`
-
-## 7) Setup Instructions
-
-1. Clone the repository.
-2. Navigate to the backend:
-   - `cd backend`
-3. Install dependencies:
-   - `npm install`
-4. Configure environment variables:
-   - copy `.env.example` to `.env` and update values
-5. Run the server:
-   - Development: `npm run dev`
-   - Production-style: `npm start`
-
-## 8) Database Setup (PostgreSQL)
-
-This project runs locally using PostgreSQL.
-
-1. Install PostgreSQL.
-2. Create a database (example):
-   - `createdb alumni_influencer_db`
-3. Update `.env` with your DB credentials:
-   - `DB_NAME`
-   - `DB_USER`
-   - `DB_PASS`
-   - `DB_HOST`
-   - `DB_PORT` (recommended to include; commonly `5432`)
-
-## 9) Environment Variables
-
-Required backend environment variables:
-
-- `PORT`
-- `CLIENT_URL`
-- `JWT_SECRET`
-- `DB_NAME`
-- `DB_USER`
-- `DB_PASS`
-- `DB_HOST`
-- `EMAIL_USER`
-- `EMAIL_PASS`
-
-## 10) Testing the API
-
-- Use Swagger UI at `/api-docs` for interactive endpoint testing, or use Postman.
-- Cookie-based auth flow:
-  1. Register/login via auth endpoints.
-  2. Receive JWT in HTTP-only `token` cookie.
-  3. Call protected routes that require authenticated user context.
-- API key flow for analytics and external endpoints:
-  1. Create an API key via developer key-management endpoints.
-  2. Call API key-protected endpoints with `Authorization: Bearer <API_KEY>`.
-  3. Ensure the key has the required scope for each endpoint.
-
-## Frontend (Brief)
-
-The `frontend` folder contains a separate React application (Vite-based) that can be run independently and integrated with this backend API.
+---
